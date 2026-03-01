@@ -3,195 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON WOODS | Craft & Build</title>
+    <title>NEON SAGA: THE ETERNAL DEPTHS</title>
     <style>
-        :root { --neon: #00f2ff; --wood: #8b4513; --leaf: #2e7d32; }
-        body { margin: 0; background: #87ceeb; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        :root { --neon: #00f2ff; --gold: #ffd700; --hp: #ff3333; }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
         
-        #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-        #world { position: absolute; width: 10000px; height: 10000px; background: linear-gradient(to bottom, #87ceeb 0%, #4a90e2 10%, #000 30%); }
+        #game-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        #world { position: absolute; width: 15000px; height: 15000px; transition: background 2s; }
         
-        /* Блоки */
-        .tile { position: absolute; width: 50px; height: 50px; box-sizing: border-box; border: 0.1px solid rgba(0,0,0,0.1); }
-        .t-grass { background: #4caf50; border-top: 4px solid #2e7d32; }
-        .t-dirt { background: #5d4037; }
-        .t-stone { background: #424242; border: 2px solid #222; }
-        .t-wood { background: var(--wood); border: 2px solid #3e2723; }
-        .t-leaf { background: var(--leaf); border-radius: 10px; }
-        .t-bench { background: #ff9800; border: 4px solid #e65100; box-shadow: 0 0 15px #ff9800; display:flex; align-items:center; justify-content:center; font-size:8px; color:black; font-weight:bold;}
+        /* Атмосфера */
+        #sky-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 5; transition: background 10s; }
+        
+        /* Плитки */
+        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.3); }
+        .t-grass { background: linear-gradient(#4caf50, #1b5e20); border-top: 6px solid #0d3b0d; }
+        .t-dirt { background: linear-gradient(#5d4037, #2d1b0d); }
+        .t-stone { background: linear-gradient(#424242, #111); }
+        .t-iron { background: radial-gradient(circle, #aaa, #333); border: 2px solid #888; }
+        .t-gold { background: radial-gradient(circle, #fff, #aa0); box-shadow: 0 0 15px #ff0; }
+        .t-ladder { background: repeating-linear-gradient(0deg, #5d2e0d, #5d2e0d 10px, transparent 10px, transparent 20px); border-left: 8px solid #3e2723; border-right: 8px solid #3e2723; z-index: 6; }
+        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; animation: pulse 2s infinite; }
 
-        /* Игрок */
-        #player { width: 28px; height: 45px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 4px; box-shadow: 0 0 20px var(--neon); }
-
+        /* Существа */
+        #player { width: 34px; height: 52px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 4px; box-shadow: 0 0 30px var(--neon); }
+        #light { position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,242,255,0.2) 0%, transparent 70%); transform: translate(-233px, -224px); pointer-events: none; }
+        .npc { width: 42px; height: 55px; background: #ff00ff; position: absolute; z-index: 900; border: 3px solid #fff; border-radius: 12px; }
+        .enemy { width: 40px; height: 40px; background: #ff3300; position: absolute; border-radius: 50%; z-index: 850; box-shadow: 0 0 15px red; }
+        
         /* Интерфейс */
-        #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 5px; z-index: 2000; pointer-events: none; }
-        #craft-ui { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 15px; border: 2px solid orange; display: none; z-index: 3000; text-align: center; }
+        #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.85); padding: 15px; border: 2px solid var(--neon); z-index: 2000; border-radius: 12px; font-size: 13px; min-width: 160px; }
+        #hp-bar { width: 100%; height: 10px; background: #333; margin-top: 5px; border-radius: 5px; overflow: hidden; }
+        #hp-fill { height: 100%; background: var(--hp); width: 100%; transition: 0.3s; }
+        
+        /* Окна */
+        .window { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid var(--neon); padding: 25px; display: none; z-index: 5000; border-radius: 20px; text-align: center; width: 85%; }
+        .menu-btn { width: 100%; padding: 15px; margin: 8px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); font-weight: bold; border-radius: 10px; font-size: 16px; }
 
-        /* Кнопки */
-        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-around; z-index: 4000; }
-        .joy { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(5px); }
-        .btn-active { background: var(--neon) !important; color: #000; }
+        /* Кнопки Android */
+        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-around; z-index: 4500; }
+        .joy { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(5px); }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<div id="viewport">
+<div id="game-container">
+    <div id="sky-overlay"></div>
+    
     <div id="world">
-        <div id="player" style="left: 500px; top: 1400px;"></div>
+        <div id="player" style="left: 600px; top: 1700px;"><div id="light"></div></div>
+        <div id="lesya" class="npc" style="left: 900px; top: 1745px;"></div>
         <div id="tiles"></div>
+        <div id="enemies"></div>
     </div>
 
+    <!-- UI -->
     <div id="hud">
-        ДЕРЕВО: <span id="res-wood">0</span> | ЗЕМЛЯ: <span id="res-dirt">0</span><br>
-        <small>Подойди к Оранжевому Верстаку для крафта!</small>
+        <b id="txt-status" style="color:var(--neon)">SURVIVOR</b>
+        <div id="hp-bar"><div id="hp-fill"></div></div>
+        <span id="ui-res">W: 0 | I: 0 | G: 0</span><br>
+        <span id="ui-quest" style="color:var(--gold)">Quest: Talk to Lesya</span>
     </div>
 
-    <div id="craft-ui">
-        <b>ВЕРСТАК</b><br><br>
-        <button onclick="craftPick()" style="padding:10px;">СДЕЛАТЬ КИРКУ (5 Дерева)</button><br><br>
-        <button onclick="closeCraft()" style="color:red;">ЗАКРЫТЬ</button>
+    <!-- Меню Крафта -->
+    <div id="craft-ui" class="window" style="border-color: orange;">
+        <h2 style="color:orange">WORKBENCH</h2>
+        <div id="craft-list"></div>
+        <button class="menu-btn" onclick="closeW('craft-ui')" style="border-color:red; color:red;">CLOSE</button>
     </div>
+
+    <!-- Диалоги -->
+    <div id="dialog-ui" class="window" style="border-color: #ff00ff;">
+        <h2 id="npc-name">LESYA</h2>
+        <p id="npc-text">...</p>
+        <button class="menu-btn" onclick="closeW('dialog-ui')">OK</button>
+    </div>
+
+    <!-- Пауза и Настройки -->
+    <div id="pause-ui" class="window">
+        <h1 id="p-title">PAUSE</h1>
+        <button class="menu-btn" onclick="toggleP()">RESUME</button>
+        <button class="menu-btn" id="btn-lang" onclick="changeL()">LANGUAGE: EN</button>
+        <button class="menu-btn" onclick="exportSave()" style="color:lightgreen; border-color:lightgreen;">SAVE TO FILE</button>
+        <button class="menu-btn" onclick="importSave()" style="color:lightblue; border-color:lightblue;">LOAD FROM FILE</button>
+        <button class="menu-btn" onclick="location.reload()" style="color:red; border-color:red;">RESTART</button>
+    </div>
+
+    <div onclick="toggleP()" style="position:fixed; top:10px; right:10px; padding:12px; background:#000; border:2px solid var(--neon); z-index:6000; border-radius:10px;">MENU</div>
 </div>
 
 <div id="controls">
-    <div class="joy" id="btn-L">←</div>
-    <div class="joy" id="btn-R">→</div>
-    <div class="joy" id="btn-DIG" style="border-color:orange">DIG</div>
-    <div class="joy" id="btn-BUILD" style="border-color:lightgreen">STAY</div>
-    <div class="joy" id="btn-UP" style="border-color:var(--neon)">UP</div>
+    <div class="joy" id="ctrl-l">←</div>
+    <div class="joy" id="ctrl-r">→</div>
+    <div class="joy" id="ctrl-d" style="border-color:orange">DIG</div>
+    <div class="joy" id="ctrl-b" style="border-color:lightgreen">STAY</div>
+    <div class="joy" id="ctrl-u" style="border-color:var(--neon)">UP</div>
 </div>
 
 <script>
-    const cfg = { tw: 50, rows: 200, cols: 100 };
+    const cfg = { tw: 60, rows: 250, cols: 100, daySpeed: 0.001 };
     let state = {
-        x: 500, y: 1400, vx: 0, vy: 0,
-        inv: { wood: 0, dirt: 0 },
-        pick: 0.1, isPaused: false, isDigging: false
+        x: 600, y: 1700, vx: 0, vy: 0, hp: 100,
+        inv: { wood: 0, iron: 0, gold: 0, dirt: 0, lad: 0 },
+        lang: 'ru', isP: false, isDig: false, pwr: 0.15, q: 0,
+        time: 0, hasSword: false
+    };
+
+    const str = {
+        ru: { p: "ПАУЗА", q0: "Поговори с Лесей", q1: "Добудь 10 железа для меча", q2: "Убей Босса на глубине 100м", w: "Дер", i: "Жел", g: "Зол", sword: "Меч скрафчен!", pick: "Кирка улучшена!" },
+        en: { p: "PAUSE", q0: "Talk to Lesya", q1: "Get 10 Iron for Sword", q2: "Kill Boss at 100m depth", w: "Wood", i: "Iron", g: "Gold", sword: "Sword crafted!", pick: "Pickaxe upgraded!" }
     };
 
     let worldMap = {};
-    const tilesContainer = document.getElementById('tiles');
+    const tilesCont = document.getElementById('tiles');
 
     function init() {
         for(let r=0; r<cfg.rows; r++) {
             for(let c=0; c<cfg.cols; c++) {
                 let type = '';
-                // Поверхность на r=30
                 if(r === 30) type = 'grass';
-                else if(r > 30) type = 'dirt';
+                else if(r > 30 && r < 70) type = 'dirt';
+                else if(r >= 70) type = 'stone';
                 
-                // Генерируем ЛЕС
-                if(r === 29 && Math.random() > 0.8) {
-                    type = 'wood'; // Ствол
-                    // Рисуем листву сверху
-                    createTile(r-1, c, 'leaf'); createTile(r-1, c-1, 'leaf'); createTile(r-1, c+1, 'leaf');
-                }
+                if(r > 35 && Math.random() > 0.94) type = 'iron';
+                if(r > 80 && Math.random() > 0.97) type = 'gold';
+                if(r === 29 && Math.random() > 0.9) type = 'wood';
 
-                if(type) createTile(r, c, type);
+                if(type) addTile(r, c, type);
             }
         }
-        // Ставим ВЕРСТАК в начале
-        createTile(29, 12, 'bench');
+        addTile(29, 18, 'bench');
         loop();
     }
 
-    function createTile(r, c, type) {
+    function addTile(r, c, type) {
         if(worldMap[`${r}-${c}`]) return;
         const t = document.createElement('div');
         t.className = `tile t-${type}`;
         t.style.left = c * cfg.tw + 'px';
         t.style.top = r * cfg.tw + 'px';
-        if(type === 'bench') t.innerHTML = "WORK";
-        tilesContainer.appendChild(t);
-        worldMap[`${r}-${c}`] = { el: t, type, hp: 3 };
+        if(type === 'bench') t.innerHTML = "<center>CRAFT</center>";
+        tilesCont.appendChild(t);
+        worldMap[`${r}-${c}`] = { el: t, type, hp: type==='stone'?10:4 };
     }
 
-    function checkCollision(nx, ny) {
-        let r = Math.floor((ny + 20) / cfg.tw);
-        let c = Math.floor((nx + 14) / cfg.tw);
-        if(worldMap[`${r}-${c}`] && worldMap[`${r}-${c}`].type !== 'leaf') return true;
-        return false;
+    function checkCol(nx, ny) {
+        let r = Math.floor((ny + 30) / cfg.tw);
+        let c = Math.floor((nx + 17) / cfg.tw);
+        let b = worldMap[`${r}-${c}`];
+        return (b && b.type !== 'ladder' && b.type !== 'bench');
     }
 
     function loop() {
-        state.vy += 0.6; // Гравитация
-        if(state.vy > 12) state.vy = 12;
+        if(!state.isP) {
+            // Время суток
+            state.time += cfg.daySpeed;
+            let night = (Math.sin(state.time) + 1) / 2;
+            document.getElementById('sky-overlay').style.background = `rgba(0,0,20,${night * 0.8})`;
+            
+            // Физика
+            state.vy += 0.7;
+            let r = Math.floor((state.y + 30) / cfg.tw);
+            let c = Math.floor((state.x + 17) / cfg.tw);
+            
+            if(worldMap[`${r}-${c}`]?.type === 'ladder') state.vy = -3.5;
 
-        if(!checkCollision(state.x + state.vx, state.y)) state.x += state.vx;
-        if(!checkCollision(state.x, state.y + state.vy)) state.y += state.vy;
-        else state.vy = 0;
+            if(!checkCol(state.x + state.vx, state.y)) state.x += state.vx;
+            if(!checkCol(state.x, state.y + state.vy)) state.y += state.vy; else state.vy = 0;
 
-        if(state.isDigging) {
-            let dr = Math.floor((state.y + 60) / cfg.tw);
-            let dc = Math.floor((state.x + 14) / cfg.tw);
-            let k = `${dr}-${dc}`;
-            if(worldMap[k] && worldMap[k].type !== 'bench') {
-                worldMap[k].hp -= state.pick;
-                if(worldMap[k].hp <= 0) {
-                    let type = worldMap[k].type;
-                    if(type === 'wood' || type === 'leaf') state.inv.wood++;
-                    else state.inv.dirt++;
-                    worldMap[k].el.remove(); delete worldMap[k];
-                    updateHUD();
+            // Копание
+            if(state.isDig) {
+                let dr = Math.floor((state.y + 65) / cfg.tw);
+                let dc = Math.floor((state.x + 17) / cfg.tw);
+                let k = `${dr}-${dc}`;
+                if(worldMap[k] && worldMap[k].type !== 'bench') {
+                    worldMap[k].hp -= state.pwr;
+                    if(worldMap[k].hp <= 0) {
+                        let t = worldMap[k].type;
+                        if(t === 'wood') state.inv.wood++; 
+                        else if(t === 'iron') state.inv.iron++;
+                        else if(t === 'gold') state.inv.gold++;
+                        else state.inv.dirt++;
+                        worldMap[k].el.remove(); delete worldMap[k];
+                        updateUI();
+                    }
                 }
+            }
+
+            // Верстак
+            if(worldMap[`${r}-${c+1}`]?.type === 'bench' || worldMap[`${r}-${c-1}`]?.type === 'bench') {
+                openCraft();
+            } else {
+                document.getElementById('craft-ui').style.display = 'none';
             }
         }
 
-        // Проверка близости верстака
-        let br = Math.floor((state.y + 20) / cfg.tw);
-        let bc = Math.floor((state.x + 14) / cfg.tw);
-        if(worldMap[`${br}-${bc+1}`]?.type === 'bench' || worldMap[`${br}-${bc-1}`]?.type === 'bench') {
-            document.getElementById('craft-ui').style.display = 'block';
-        }
-
-        player.style.left = state.x + 'px';
-        player.style.top = state.y + 'px';
+        document.getElementById('player').style.left = state.x + 'px';
+        document.getElementById('player').style.top = state.y + 'px';
         document.getElementById('world').style.transform = `translate(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px)`;
+        document.getElementById('hp-fill').style.width = state.hp + '%';
         requestAnimationFrame(loop);
     }
 
+    function openCraft() {
+        const ui = document.getElementById('craft-ui');
+        if(ui.style.display === 'block') return;
+        ui.style.display = 'block';
+        const list = document.getElementById('craft-list');
+        list.innerHTML = `
+            <button class="menu-btn" onclick="craft('lad')">Ladder (3 Wood)</button>
+            <button class="menu-btn" onclick="craft('pick')">Super Pickaxe (15 Iron)</button>
+            <button class="menu-btn" onclick="craft('sword')">Energy Sword (10 Iron, 5 Gold)</button>
+        `;
+    }
+
+    function craft(type) {
+        if(type === 'lad' && state.inv.wood >= 3) { state.inv.wood -= 3; state.inv.lad++; }
+        else if(type === 'pick' && state.inv.iron >= 15) { state.inv.iron -= 15; state.pwr = 0.6; alert(str[state.lang].pick); }
+        else if(type === 'sword' && state.inv.iron >= 10 && state.inv.gold >= 5) { state.inv.iron -= 10; state.inv.gold -= 5; state.hasSword = true; alert(str[state.lang].sword); }
+        updateUI();
+    }
+
+    function action() {
+        let dist = Math.abs(state.x - 900);
+        if(dist < 100 && state.y < 1800) {
+            document.getElementById('dialog-ui').style.display = 'block';
+            document.getElementById('npc-text').innerText = state.lang === 'ru' ? "Привет! Глубоко под землей спит Страж. Тебе понадобится Энерго-меч, чтобы пробить его броню!" : "Hey! The Guardian sleeps deep below. You need an Energy Sword to pierce its armor!";
+            state.q = 1; updateUI();
+        } else { if(state.vy === 0) state.vy = -14; }
+    }
+
     function build() {
-        if(state.inv.dirt > 0) {
-            let r = Math.floor((state.y + 60) / cfg.tw);
-            let c = Math.floor((state.x + 14) / cfg.tw);
-            if(!worldMap[`${r}-${c}`]) {
-                createTile(r, c, 'dirt');
-                state.inv.dirt--;
-                state.y -= 50; // Приподнимаем игрока на новый блок
-                updateHUD();
-            }
+        let r = Math.floor((state.y + 30) / cfg.tw);
+        let c = Math.floor((state.x + 17) / cfg.tw);
+        if(state.inv.lad > 0 && !worldMap[`${r}-${c}`]) {
+            addTile(r, c, 'ladder'); state.inv.lad--;
+        } else if(state.inv.dirt > 0) {
+            addTile(r+1, c, 'dirt'); state.inv.dirt--;
         }
+        updateUI();
     }
 
-    function craftPick() {
-        if(state.inv.wood >= 5) {
-            state.inv.wood -= 5; state.pick = 0.5;
-            alert("КИРКА СДЕЛАНА! Теперь копаем быстрее.");
-            updateHUD();
-            closeCraft();
-        }
+    function changeL() {
+        state.lang = state.lang === 'ru' ? 'en' : 'ru';
+        updateUI();
     }
 
-    function updateHUD() {
-        document.getElementById('res-wood').innerText = state.inv.wood;
-        document.getElementById('res-dirt').innerText = state.inv.dirt;
+    function updateUI() {
+        let s = str[state.lang];
+        document.getElementById('ui-res').innerText = `${s.w}:${state.inv.wood} | ${s.i}:${state.inv.iron} | ${s.g}:${state.inv.gold} | L:${state.inv.lad}`;
+        document.getElementById('ui-quest').innerText = state.q === 0 ? s.q0 : (state.hasSword ? s.q2 : s.q1);
+        document.getElementById('p-title').innerText = s.p;
+        document.getElementById('btn-lang').innerText = "LANGUAGE: " + state.lang.toUpperCase();
     }
 
-    function closeCraft() { document.getElementById('craft-ui').style.display = 'none'; }
+    function exportSave() {
+        const data = btoa(JSON.stringify(state));
+        const blob = new Blob([data], {type: "text/plain"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "neon_saga_save.json";
+        a.click();
+    }
 
-    const bind = (id, start, stop) => {
-        const el = document.getElementById(id);
-        el.ontouchstart = (e) => { e.preventDefault(); start(); el.classList.add('btn-active'); };
-        el.ontouchend = (e) => { e.preventDefault(); stop(); el.classList.remove('btn-active');};
+    function importSave() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.onchange = e => {
+            const reader = new FileReader();
+            reader.readAsText(e.target.files[0]);
+            reader.onload = () => {
+                state = JSON.parse(atob(reader.result));
+                location.reload();
+            };
+        };
+        input.click();
+    }
+
+    function toggleP() { state.isP = !state.isP; document.getElementById('pause-ui').style.display = state.isP ? 'flex' : 'none'; }
+    function closeW(id) { document.getElementById(id).style.display = 'none'; }
+
+    const bind = (id, s, e) => {
+        let el = document.getElementById(id);
+        el.addEventListener('touchstart', (ev) => { ev.preventDefault(); s(); });
+        el.addEventListener('touchend', (ev) => { ev.preventDefault(); e(); });
     };
+    bind('ctrl-l', () => state.vx = -7, () => state.vx = 0);
+    bind('ctrl-r', () => state.vx = 7, () => state.vx = 0);
+    bind('ctrl-d', () => state.isDig = true, () => state.isDig = false);
+    document.getElementById('ctrl-u').ontouchstart = action;
+    document.getElementById('ctrl-b').ontouchstart = build;
 
-    bind('btn-L', () => state.vx = -6, () => state.vx = 0);
-    bind('btn-R', () => state.vx = 6, () => state.vx = 0);
-    bind('btn-DIG', () => state.isDigging = true, () => state.isDigging = false);
-    document.getElementById('btn-UP').ontouchstart = () => { if(state.vy === 0) state.vy = -13; };
-    document.getElementById('btn-BUILD').ontouchstart = build;
-
-    init();
+    init(); updateUI();
 </script>
 </body>
 </html>
