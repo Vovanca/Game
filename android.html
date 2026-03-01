@@ -3,172 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON SAGA: PRO ENGINE</title>
+    <title>NEON SAGA: ZERO LAG</title>
     <style>
         :root { --neon: #00f2ff; --gold: #ffd700; }
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
         #world { position: absolute; will-change: transform; }
         #sky { position: fixed; inset: 0; background: linear-gradient(to bottom, #001 0%, #4a90e2 50%, #87ceeb 100%); z-index: -1; }
-
-        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.1); will-change: opacity; }
-        .t-grass { background: #4caf50; }
-        .t-dirt { background: #5d4037; }
-        .t-stone { background: #424242; }
+        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.1); display: none; }
+        .t-grass { background: #4caf50; } .t-dirt { background: #5d4037; } .t-stone { background: #424242; }
         .t-iron { background: #aaa; box-shadow: inset 0 0 10px #fff; }
         .t-gold { background: #ff0; box-shadow: 0 0 15px #ff0; }
         .t-ladder { background: rgba(0,242,255,0.3); border-left: 8px solid var(--neon); border-right: 8px solid var(--neon); }
-        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; }
-
+        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; text-align: center; font-size: 10px; color: #000; font-weight: bold; }
         #player { width: 34px; height: 52px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 6px; box-shadow: 0 0 25px var(--neon); will-change: transform; }
-        .eyes { display: flex; gap: 6px; margin-top: 10px; justify-content: center; }
-        .eye { width: 6px; height: 6px; background: #000; border-radius: 50%; }
-
+        .eyes { display: flex; gap: 6px; margin-top: 10px; justify-content: center; } .eye { width: 6px; height: 6px; background: #000; border-radius: 50%; }
         .boss { position: absolute; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 10px solid #fff; border-radius: 20px; font-size: 24px; color: white; background: rgba(0,0,0,0.5); }
-
         #hud { position: fixed; top: 15px; left: 15px; background: rgba(0,0,0,0.8); padding: 12px; border: 2px solid var(--neon); border-radius: 12px; z-index: 2000; }
         .window { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid var(--neon); padding: 25px; display: none; z-index: 5000; border-radius: 20px; text-align: center; width: 80%; }
         .menu-btn { width: 100%; padding: 15px; margin: 8px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); font-weight: bold; border-radius: 10px; }
-
         #controls { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: space-around; z-index: 4500; }
         .joy { width: 75px; height: 75px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div id="viewport">
     <div id="sky"></div>
     <div id="world">
         <div id="player"><div class="eyes"><div class="eye"></div><div class="eye"></div></div></div>
         <div id="b-up" class="boss" style="left:2000px; top:-1000px; width:400px; height:100px;">COSMOS DRAGON</div>
-        <div id="b-down" class="boss" style="left:2000px; top:8000px; width:300px; height:300px; background:red;">VOID WARDEN</div>
+        <div id="b-down" class="boss" style="left:2000px; top:12000px; width:300px; height:300px; background:red;">VOID WARDEN</div>
+        <div id="b-left" class="boss" style="left:-1000px; top:1800px; width:200px; height:200px; background:blue;">CYBER DROID</div>
+        <div id="b-right" class="boss" style="left:10000px; top:1800px; width:250px; height:250px; background:green;">TITAN</div>
         <div id="tiles"></div>
     </div>
-
-    <div id="hud">
-        <b id="ui-res">W: 0 | I: 0 | G: 0</b><br>
-        <span id="ui-alt" style="color:var(--gold)">ALT: 0m</span>
-    </div>
-
-    <div id="craft-ui" class="window">
-        <h2 id="t-craft" style="color:orange">ВЕРСТАК</h2>
-        <button class="menu-btn" onclick="craft('lad')" id="btn-lad">Лестница (3 Wood)</button>
-        <button class="menu-btn" onclick="craft('pick')" id="btn-pick">Бур (15 Iron)</button>
-        <button class="menu-btn" onclick="closeW()" id="btn-close">ЗАКРЫТЬ</button>
-    </div>
-
-    <div id="pause-ui" class="window">
-        <h1 id="t-pause">ПАУЗА</h1>
-        <button class="menu-btn" onclick="toggleP()" id="btn-res">ИГРАТЬ</button>
-        <button class="menu-btn" onclick="changeL()" id="btn-lang">ЯЗЫК: RU</button>
-        <button class="menu-btn" onclick="exportS()" style="color:lightgreen">СОХРАНИТЬ В ФАЙЛ</button>
-        <button class="menu-btn" onclick="importS()" style="color:lightblue">ЗАГРУЗИТЬ ФАЙЛ</button>
-        <button class="menu-btn" onclick="location.reload()" style="color:red">RESTART</button>
-    </div>
-
+    <div id="hud"><b id="ui-res">W: 0 | I: 0 | G: 0</b><br><span id="ui-alt" style="color:var(--gold)">ALT: 0m</span></div>
+    <div id="craft-ui" class="window"><h2 id="t-craft">ВЕРСТАК</h2><button class="menu-btn" onclick="craft('lad')" id="btn-lad">Лестница</button><button class="menu-btn" onclick="craft('pick')" id="btn-pick">Бур</button><button class="menu-btn" onclick="closeW()" id="btn-close">ЗАКРЫТЬ</button></div>
+    <div id="pause-ui" class="window"><h1 id="t-pause">ПАУЗА</h1><button class="menu-btn" onclick="toggleP()" id="btn-res">ИГРАТЬ</button><button class="menu-btn" onclick="changeL()" id="btn-lang">ЯЗЫК: RU</button><button class="menu-btn" onclick="exportS()" style="color:lightgreen">В ФАЙЛ</button><button class="menu-btn" onclick="importS()" style="color:lightblue">ИЗ ФАЙЛА</button><button class="menu-btn" onclick="location.reload()" style="color:red">RESTART</button></div>
     <div onclick="toggleP()" style="position:fixed; top:15px; right:15px; padding:10px; background:#000; border:2px solid var(--neon); z-index:6000; border-radius:8px;">MENU</div>
 </div>
-
-<div id="controls">
-    <div class="joy" id="l">←</div>
-    <div class="joy" id="r">→</div>
-    <div class="joy" id="d" style="border-color:orange">DIG</div>
-    <div class="joy" id="b" style="border-color:lightgreen">BUILD</div>
-    <div class="joy" id="u" style="border-color:var(--neon)">UP</div>
-</div>
+<div id="controls"><div class="joy" id="l">←</div><div class="joy" id="r">→</div><div class="joy" id="d" style="border-color:orange">DIG</div><div class="joy" id="b" style="border-color:lightgreen">BUILD</div><div class="joy" id="u" style="border-color:var(--neon)">UP</div></div>
 
 <script>
-    const cfg = { tw: 60, rows: 200, cols: 200, f: 0.82, a: 1.2, g: 0.7, j: -15, renderDist: 800 };
-    let state = {
-        x: 2000, y: 1730, vx: 0, vy: 0,
-        inv: { wood: 0, iron: 0, gold: 0, lad: 0, dirt: 0 },
-        isP: false, isDig: false, lang: 'ru', pwr: 0.2
-    };
-
+    const cfg = { tw: 60, rows: 250, cols: 250, f: 0.82, a: 1.3, g: 0.75, j: -15.5, viewW: 1000, viewH: 800 };
+    let state = { x: 2000, y: 1720, vx: 0, vy: 0, inv: { wood: 0, iron: 0, gold: 0, lad: 0, dirt: 0 }, isP: false, isDig: false, lang: 'ru', pwr: 0.2 };
     const str = {
-        ru: { lang: "ЯЗЫК: RU", alt: "ВЫСОТА", p: "ПАУЗА", res: "ИГРАТЬ", cr: "ВЕРСТАК", cl: "ЗАКРЫТЬ", lad: "Лестница (3 Дер)", pick: "Бур (15 Жел)" },
+        ru: { lang: "ЯЗЫК: RU", alt: "ВЫСОТА", p: "ПАУЗА", res: "ИГРАТЬ", cr: "ВЕРСТАК", cl: "ЗАКРЫТЬ", lad: "Лестница (3 Wood)", pick: "Бур (15 Iron)" },
         en: { lang: "LANG: EN", alt: "ALTITUDE", p: "PAUSE", res: "RESUME", cr: "WORKBENCH", cl: "CLOSE", lad: "Ladder (3 Wood)", pick: "Drill (15 Iron)" }
     };
-
-    let worldMap = {};
-    const tilesCont = document.getElementById('tiles');
+    let worldMap = {}; const tilesCont = document.getElementById('tiles');
 
     function init() {
         for(let r=0; r<cfg.rows; r++) {
             for(let c=0; c<cfg.cols; c++) {
                 let type = '';
-                if(r === 30) type = 'grass';
-                else if(r > 30 && r < 120) type = 'dirt';
-                else if(r >= 120) type = 'stone';
-                if(r > 35 && Math.random() > 0.95) type = 'iron';
-                if(r > 90 && Math.random() > 0.97) type = 'gold';
+                if(r === 30) type = 'grass'; else if(r > 30 && r < 120) type = 'dirt'; else if(r >= 120) type = 'stone';
+                if(r > 35 && Math.random() > 0.95) type = 'iron'; if(r > 95 && Math.random() > 0.97) type = 'gold';
                 if(r === 29 && Math.random() > 0.9) type = 'wood';
                 if(type) createBlock(r, c, type);
             }
         }
-        createBlock(29, 36, 'bench');
-        updateUI();
-        requestAnimationFrame(loop);
+        createBlock(29, 36, 'bench'); updateUI(); requestAnimationFrame(loop);
     }
 
     function createBlock(r, c, type) {
-        const t = document.createElement('div');
-        t.className = `tile t-${type}`;
-        t.style.left = c * cfg.tw + 'px';
-        t.style.top = r * cfg.tw + 'px';
-        if(type==='bench') t.innerHTML = "<center style='color:#000;font-size:10px;font-weight:bold;margin-top:20px'>WORK</center>";
-        tilesCont.appendChild(t);
-        worldMap[`${r}-${c}`] = { el: t, type, hp: 5 };
+        const t = document.createElement('div'); t.className = `tile t-${type}`;
+        t.style.transform = `translate3d(${c * cfg.tw}px, ${r * cfg.tw}px, 0)`;
+        if(type==='bench') t.innerText = "WORK";
+        tilesCont.appendChild(t); worldMap[`${r}-${c}`] = { el: t, type, hp: 5, x: c*cfg.tw, y: r*cfg.tw };
     }
 
     function checkC(nx, ny) {
-        let r = Math.floor((ny + 35) / cfg.tw);
-        let c = Math.floor((nx + 17) / cfg.tw);
-        let b = worldMap[`${r}-${c}`];
-        return (b && b.type !== 'ladder' && b.type !== 'bench');
+        let r = Math.floor((ny + 35) / cfg.tw), c = Math.floor((nx + 17) / cfg.tw);
+        let b = worldMap[`${r}-${c}`]; return (b && b.type !== 'ladder' && b.type !== 'bench');
     }
 
     function loop() {
         if(!state.isP) {
-            if(mv.l) state.vx -= cfg.a;
-            if(mv.r) state.vx += cfg.a;
-            state.vx *= cfg.f;
-            state.vy += cfg.g;
-
-            let r = Math.floor((state.y + 35) / cfg.tw);
-            let c = Math.floor((state.x + 17) / cfg.tw);
-            
+            if(mv.l) state.vx -= cfg.a; if(mv.r) state.vx += cfg.a;
+            state.vx *= cfg.f; state.vy += cfg.g;
+            let r = Math.floor((state.y + 35) / cfg.tw), c = Math.floor((state.x + 17) / cfg.tw);
             if(worldMap[`${r}-${c}`]?.type === 'ladder') state.vy = mv.u ? -10 : 1;
-
             if(!checkC(state.x + state.vx, state.y)) state.x += state.vx; else state.vx = 0;
             if(!checkC(state.x, state.y + state.vy)) state.y += state.vy; else { if(state.vy > 0) canJ = true; state.vy = 0; }
-
             if(state.isDig) {
-                let dr = Math.floor((state.y + 65) / cfg.tw);
-                let dc = Math.floor((state.x + 17) / cfg.tw);
-                let k = `${dr}-${dc}`;
+                let dr = Math.floor((state.y + 65) / cfg.tw), dc = Math.floor((state.x + 17) / cfg.tw), k = `${dr}-${dc}`;
                 if(worldMap[k] && worldMap[k].type !== 'bench') {
-                    worldMap[k].hp -= state.pwr;
-                    if(worldMap[k].hp <= 0) {
+                    worldMap[k].hp -= state.pwr; if(worldMap[k].hp <= 0) {
                         state.inv[worldMap[k].type === 'wood'?'wood':(worldMap[k].type==='iron'?'iron':(worldMap[k].type==='gold'?'gold':'dirt'))]++;
-                        worldMap[k].el.remove(); delete worldMap[k];
-                        updateUI();
+                        worldMap[k].el.remove(); delete worldMap[k]; updateUI();
                     }
                 }
             }
             if(worldMap[`${r}-${c+1}`]?.type === 'bench' || worldMap[`${r}-${c-1}`]?.type === 'bench') document.getElementById('craft-ui').style.display = 'block';
 
-            // Оптимизация: Скрываем блоки вне экрана
+            // Оптимизация FPS: Отрисовка только видимых блоков
             for (let key in worldMap) {
-                let block = worldMap[key];
-                let bx = parseInt(block.el.style.left);
-                let by = parseInt(block.el.style.top);
-                let dist = Math.sqrt((bx - state.x)**2 + (by - state.y)**2);
-                block.el.style.display = dist > cfg.renderDist ? 'none' : 'block';
+                let b = worldMap[key];
+                let isVisible = Math.abs(b.x - state.x) < cfg.viewW && Math.abs(b.y - state.y) < cfg.viewH;
+                b.el.style.display = isVisible ? 'block' : 'none';
             }
         }
-
         document.getElementById('player').style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`;
         document.getElementById('world').style.transform = `translate3d(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px, 0)`;
         document.getElementById('ui-alt').innerText = `${str[state.lang].alt}: ${Math.floor((1800 - state.y)/10)}m`;
@@ -177,63 +112,30 @@
     }
 
     let mv = { l: false, r: false, u: false }, canJ = false;
-
     function craft(t) {
         if(t==='lad' && state.inv.wood >= 3) { state.inv.wood -= 3; state.inv.lad++; }
         if(t==='pick' && state.inv.iron >= 15) { state.inv.iron -= 15; state.pwr = 0.8; }
         updateUI();
     }
-
     function build() {
-        let r = Math.floor((state.y + 35) / cfg.tw);
-        let c = Math.floor((state.x + 17) / cfg.tw);
+        let r = Math.floor((state.y + 35) / cfg.tw), c = Math.floor((state.x + 17) / cfg.tw);
         if(state.inv.lad > 0 && !worldMap[`${r}-${c}`]) { createBlock(r, c, 'ladder'); state.inv.lad--; }
         else if(state.inv.dirt > 0) { createBlock(r+1, c, 'dirt'); state.inv.dirt--; }
         updateUI();
     }
-
-    function exportS() {
-        const d = btoa(JSON.stringify(state));
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([d], {type:"text/plain"}));
-        a.download = "neon_saga_save.json"; a.click();
-    }
-
-    function importS() {
-        const i = document.createElement("input"); i.type = "file";
-        i.onchange = e => {
-            const r = new FileReader(); r.readAsText(e.target.files);
-            r.onload = () => { state = JSON.parse(atob(r.result)); location.reload(); };
-        }; i.click();
-    }
-
+    function exportS() { const d = btoa(JSON.stringify(state)); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([d], {type:"text/plain"})); a.download = "save.json"; a.click(); }
+    function importS() { const i = document.createElement("input"); i.type = "file"; i.onchange = e => { const r = new FileReader(); r.readAsText(e.target.files); r.onload = () => { state = JSON.parse(atob(r.result)); location.reload(); }; }; i.click(); }
     function updateUI() {
-        let s = str[state.lang];
-        document.getElementById('ui-res').innerText = `W: ${state.inv.wood} | I: ${state.inv.iron} | G: ${state.inv.gold} | L: ${state.inv.lad}`;
-        document.getElementById('t-pause').innerText = s.p;
-        document.getElementById('btn-res').innerText = s.res;
-        document.getElementById('btn-lang').innerText = s.lang;
-        document.getElementById('t-craft').innerText = s.cr;
-        document.getElementById('btn-close').innerText = s.cl;
-        document.getElementById('btn-lad').innerText = s.lad;
-        document.getElementById('btn-pick').innerText = s.pick;
+        let s = str[state.lang]; document.getElementById('ui-res').innerText = `W: ${state.inv.wood} | I: ${state.inv.iron} | G: ${state.inv.gold} | L: ${state.inv.lad}`;
+        document.getElementById('t-pause').innerText = s.p; document.getElementById('btn-res').innerText = s.res; document.getElementById('btn-lang').innerText = s.lang;
+        document.getElementById('t-craft').innerText = s.cr; document.getElementById('btn-close').innerText = s.cl; document.getElementById('btn-lad').innerText = s.lad; document.getElementById('btn-pick').innerText = s.pick;
     }
-
     function toggleP() { state.isP = !state.isP; document.getElementById('pause-ui').style.display = state.isP ? 'flex' : 'none'; }
     function closeW() { document.getElementById('craft-ui').style.display = 'none'; }
     function changeL() { state.lang = state.lang === 'ru' ? 'en' : 'ru'; updateUI(); }
-
-    const bnd = (id, k) => {
-        let el = document.getElementById(id);
-        el.ontouchstart = (e) => { e.preventDefault(); mv[k] = true; };
-        el.ontouchend = (e) => { e.preventDefault(); mv[k] = false; };
-    };
-    bnd('l', 'l'); bnd('r', 'r');
-    document.getElementById('u').ontouchstart = () => { if(canJ) { state.vy = cfg.j; canJ = false; } };
-    document.getElementById('d').ontouchstart = () => state.isDig = true;
-    document.getElementById('d').ontouchend = () => state.isDig = false;
-    document.getElementById('b').ontouchstart = build;
-
+    const bnd = (id, k) => { let el = document.getElementById(id); el.ontouchstart = (e) => { e.preventDefault(); mv[k] = true; }; el.ontouchend = (e) => { e.preventDefault(); mv[k] = false; }; };
+    bnd('l', 'l'); bnd('r', 'r'); document.getElementById('u').ontouchstart = () => { if(canJ) { state.vy = cfg.j; canJ = false; } };
+    document.getElementById('d').ontouchstart = () => state.isDig = true; document.getElementById('d').ontouchend = () => state.isDig = false; document.getElementById('b').ontouchstart = build;
     init();
 </script>
 </body>
