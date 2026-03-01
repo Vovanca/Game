@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUESTIFY: SAGA</title>
+    <style>
+        :root { --neon: #00ffcc; --danger: #ff3300; --gold: #ffd700; --bg: #05050a; }
+        body { margin: 0; background: var(--bg); color: #eee; font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; user-select: none; }
+        
+        /* Мир и Герой */
+        #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        #world { position: absolute; width: 5000px; height: 100%; transition: transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
+        #player { 
+            width: 30px; height: 45px; background: var(--neon); position: absolute; 
+            bottom: 100px; left: 50px; border-radius: 4px; box-shadow: 0 0 20px var(--neon); 
+            z-index: 50; transition: bottom 0.2s;
+        }
+
+        /* Декорации глав */
+        .platform { position: absolute; background: #1a1a2e; border-top: 3px solid #333; bottom: 0; height: 100px; }
+        .chapter-label { position: absolute; top: 100px; font-size: 40px; opacity: 0.2; width: 1000px; text-align: center; }
+
+        /* HUD */
+        #hud { position: absolute; top: 10px; left: 10px; z-index: 100; font-size: 14px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px; border: 1px solid var(--neon); }
+        .bar { width: 100px; height: 10px; background: #222; margin: 5px 0; border: 1px solid #444; }
+        #hp-fill { background: var(--danger); width: 100%; height: 100%; transition: 0.3s; }
+        #xp-fill { background: var(--neon); width: 0%; height: 100%; transition: 0.3s; }
+
+        /* Меню паузы */
+        #pause-menu {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .menu-btn { 
+            margin: 10px; padding: 15px 30px; background: none; border: 1px solid var(--neon); 
+            color: var(--neon); font-size: 18px; cursor: pointer; width: 250px;
+        }
+        .menu-btn:active { background: var(--neon); color: #000; }
+
+        /* Диалоги */
+        #dialog {
+            position: fixed; bottom: 180px; left: 5%; width: 90%; background: #000;
+            border: 2px solid var(--gold); padding: 15px; display: none; z-index: 500;
+        }
+
+        /* Кнопки Android */
+        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 800; }
+        .joy { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="viewport">
+    <div id="hud">
+        <b>CHAPTER <span id="ui-chapter">1</span></b><br>
+        HP: <div class="bar"><div id="hp-fill"></div></div>
+        XP: <div class="bar"><div id="xp-fill"></div></div>
+        GOLD: <span id="ui-gold">0</span> | LVL: <span id="ui-lvl">1</span>
+    </div>
+
+    <div id="world">
+        <div id="player"></div>
+        <!-- Динамические уровни -->
+        <div id="level-content"></div>
+    </div>
+
+    <div id="dialog" onclick="nextStep()">
+        <b id="talker" style="color:var(--gold)"></b><br>
+        <span id="speech"></span>
+    </div>
+
+    <!-- Пауза -->
+    <div id="pause-menu">
+        <h1 style="color: var(--neon)">SYSTEM PAUSED</h1>
+        <button class="menu-btn" onclick="togglePause()">RESUME</button>
+        <hr style="width: 250px; border-color: #333;">
+        <button class="menu-btn" onclick="exportSave()">DOWNLOAD SAVE FILE</button>
+        <button class="menu-btn" onclick="document.getElementById('fileInput').click()">UPLOAD SAVE FILE</button>
+        <input type="file" id="fileInput" style="display:none" onchange="importSave(event)">
+        <button class="menu-btn" onclick="resetGame()" style="border-color: red; color: red;">RESET ALL</button>
+    </div>
+
+    <div onclick="togglePause()" style="position:fixed; top:10px; right:10px; padding:10px; border:1px solid #555; z-index:1100;">MENU</div>
+</div>
+
+<div id="controls">
+    <div style="display:flex; gap:10px;">
+        <div class="joy" id="btn-L">LEFT</div>
+        <div class="joy" id="btn-R">RIGHT</div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <div class="joy" id="btn-A" style="border-color: var(--danger)">HIT</div>
+        <div class="joy" id="btn-J" style="border-color: var(--neon)">JUMP</div>
+    </div>
+</div>
+
+<script>
+    // Обширная структура данных для сюжета и прогресса
+    let saga = {
+        lvl: 1, xp: 0, gold: 0, hp: 100,
+        chapter: 1, storyStep: 0,
+        x: 100, y: 100,
+        inventory: [],
+        isPaused: false
+    };
+
+    const story = [
+        { c: 1, n: "Billy", t: "Welcome to Sector 7. Find 500 gold to pay the smuggler for the lift to Chapter 2." },
+        { c: 2, n: "Miner", t: "The air is thin here. Grind to Level 10 to survive the deep descent." },
+        { c: 3, n: "Guard", t: "This is the end, traveler. Use your accumulated power to breach the Citadel!" }
+    ];
+
+    // --- Система Сохранений ---
+    function saveToLocal() { localStorage.setItem('questifySaga', JSON.stringify(saga)); }
+    
+    function exportSave() {
+        const data = JSON.stringify(saga);
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Questify_Save_Ch${saga.chapter}_Lvl${saga.lvl}.json`;
+        a.click();
+    }
+
+    function importSave(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                saga = JSON.parse(e.target.result);
+                saveToLocal();
+                location.reload();
+            } catch (err) { alert("Invalid Save File!"); }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetGame() { if(confirm("Erase everything?")) { localStorage.clear(); location.reload(); } }
+
+    // --- Логика Игры ---
+    function init() {
+        const localData = localStorage.getItem('questifySaga');
+        if(localData) saga = JSON.parse(localData);
+        renderWorld();
+        updateHUD();
+        checkStory();
+    }
+
+    function renderWorld() {
+        const content = document.getElementById('level-content');
+        content.innerHTML = '';
+        // Генерация огромного ландшафта (5000px)
+        for(let i=0; i<10; i++) {
+            let p = document.createElement('div');
+            p.className = 'platform';
+            p.style.left = (i * 600) + 'px';
+            p.style.width = '450px';
+            content.appendChild(p);
+        }
+        // Метки глав
+        for(let i=1; i<=3; i++) {
+            let l = document.createElement('div');
+            l.className = 'chapter-label';
+            l.style.left = ((i-1) * 1500) + 'px';
+            l.innerText = "REGION " + i;
+            content.appendChild(l);
+        }
+    }
+
+    function updateHUD() {
+        document.getElementById('ui-chapter').innerText = saga.chapter;
+        document.getElementById('ui-lvl').innerText = saga.lvl;
+        document.getElementById('ui-gold').innerText = saga.gold;
+        document.getElementById('hp-fill').style.width = saga.hp + '%';
+        document.getElementById('xp-fill').style.width = (saga.xp % 100) + '%';
+        document.getElementById('player').style.left = saga.x + 'px';
+        document.getElementById('player').style.bottom = saga.y + 'px';
+        document.getElementById('world').style.transform = `translateX(${-saga.x + 100}px)`;
+    }
+
+    function move(d) {
+        if(saga.isPaused) return;
+        saga.x += d;
+        if(saga.x < 0) saga.x = 0;
+        
+        // Проверка перехода глав
+        if(saga.x > 1500 && saga.chapter === 1) {
+            if(saga.gold >= 500) { saga.chapter = 2; showMsg("System", "Entering Chapter 2: The Mines."); }
+            else { saga.x = 1450; showMsg("Smuggler", "You need 500 gold to pass!"); }
+        }
+        
+        updateHUD();
+        saveToLocal();
+    }
+
+    function jump() {
+        if(saga.isPaused || saga.y > 100) return;
+        saga.y = 250; updateHUD();
+        setTimeout(() => { saga.y = 100; updateHUD(); }, 400);
+    }
+
+    function showMsg(name, text) {
+        document.getElementById('dialog').style.display = 'block';
+        document.getElementById('talker').innerText = name;
+        document.getElementById('speech').innerText = text;
+    }
+
+    function nextStep() { document.getElementById('dialog').style.display = 'none'; }
+
+    function checkStory() {
+        let current = story.find(s => s.c === saga.chapter);
+        if(current) showMsg(current.n, current.t);
+    }
+
+    function togglePause() {
+        saga.isPaused = !saga.isPaused;
+        document.getElementById('pause-menu').style.display = saga.isPaused ? 'flex' : 'none';
+        saveToLocal();
+    }
+
+    // Привязка кнопок
+    document.getElementById('btn-L').ontouchstart = (e) => { e.preventDefault(); move(-40); };
+    document.getElementById('btn-R').ontouchstart = (e) => { e.preventDefault(); move(40); };
+    document.getElementById('btn-J').ontouchstart = (e) => { e.preventDefault(); jump(); };
+    document.getElementById('btn-A').ontouchstart = (e) => { e.preventDefault(); 
+        saga.gold += 10; saga.xp += 5; 
+        if(saga.xp >= saga.lvl * 100) { saga.lvl++; showMsg("System", "Level Up!"); }
+        updateHUD(); 
+    };
+
+    init();
+</script>
+</body>
+</html>
