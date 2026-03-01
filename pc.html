@@ -2,36 +2,35 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEON SAGA: THE RETURN</title>
+    <title>NEON SAGA: THE ULTIMATE PC EDITION</title>
     <style>
         :root { --neon: #00f2ff; --gold: #ffd700; --red: #ff4444; }
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; cursor: crosshair; }
         #world { position: absolute; will-change: transform; }
         #sky { position: fixed; inset: 0; background: linear-gradient(to bottom, #001 0%, #4a90e2 50%, #87ceeb 100%); z-index: -1; }
-
+        
         /* Блоки */
         .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.2); }
-        .t-grass { background: #4caf50; border-top: 5px solid #1b5e20; }
-        .t-dirt { background: #5d4037; }
-        .t-stone { background: #424242; }
-        .t-iron { background: #aaa; box-shadow: inset 0 0 10px #fff; }
-        .t-gold { background: #ff0; box-shadow: 0 0 20px #ff0; }
+        .t-grass { background: linear-gradient(#4caf50, #2e7d32); }
+        .t-dirt { background: linear-gradient(#5d4037, #3e2723); }
+        .t-stone { background: linear-gradient(#424242, #111); }
+        .t-iron { background: radial-gradient(circle, #ddd, #555); border: 2px solid #888; }
+        .t-gold { background: radial-gradient(circle, #fff, #aa0); box-shadow: 0 0 20px #ff0; }
         .t-ladder { background: rgba(0,242,255,0.3); border-left: 8px solid var(--neon); border-right: 8px solid var(--neon); }
-        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; font-weight: bold; color: #000; text-align: center; line-height: 50px; }
+        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; text-align: center; line-height: 50px; font-weight: bold; color: #000; }
 
-        /* Игрок */
-        #player { width: 34px; height: 52px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 4px; box-shadow: 0 0 30px var(--neon); }
-        
-        /* Интерфейс */
+        /* Игрок и Боссы */
+        #player { width: 34px; height: 52px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 4px; box-shadow: 0 0 30px var(--neon); transition: transform 0.1s; }
+        .npc { width: 40px; height: 55px; background: #ff00ff; position: absolute; z-index: 900; border: 3px solid #fff; border-radius: 10px; }
+        .boss { position: absolute; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 20px; border: 8px solid #fff; font-size: 24px; color: #fff; text-shadow: 2px 2px #000; }
+
+        /* UI */
         #hud { position: fixed; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 15px; border: 2px solid var(--neon); border-radius: 12px; z-index: 2000; }
-        .window { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid var(--neon); padding: 25px; display: none; z-index: 5000; border-radius: 20px; text-align: center; min-width: 300px; }
-        .menu-btn { width: 100%; padding: 12px; margin: 8px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); font-weight: bold; cursor: pointer; border-radius: 8px; }
-
-        /* Боссы */
-        .boss { position: absolute; padding: 40px; font-weight: bold; border-radius: 20px; border: 5px solid #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .window { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid var(--neon); padding: 25px; display: none; z-index: 5000; border-radius: 20px; text-align: center; width: 400px; max-height: 80vh; overflow-y: auto; }
+        .menu-btn { width: 100%; padding: 12px; margin: 6px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); font-weight: bold; cursor: pointer; border-radius: 8px; }
+        .menu-btn:hover { background: var(--neon); color: #000; }
+        .bind-waiting { background: var(--red) !important; color: #fff !important; }
     </style>
 </head>
 <body>
@@ -40,30 +39,49 @@
     <div id="sky"></div>
     <div id="world">
         <div id="player" style="left: 2000px; top: 1720px;"></div>
+        <div id="lesya" class="npc" style="left: 2300px; top: 1745px;"></div>
         <div id="tiles"></div>
-        <!-- Боссы возвращены -->
-        <div class="boss" style="left:2000px; top:-1000px; background:white; color:black;">COSMOS DRAGON</div>
-        <div class="boss" style="left:8000px; top:1800px; background:green;">FOREST TITAN</div>
-        <div class="boss" style="left:2000px; top:8000px; background:red;">VOID WARDEN</div>
+        
+        <!-- Все Боссы -->
+        <div class="boss" style="left:2000px; top:-1000px; width:400px; height:120px; background:white; color:black;">COSMOS DRAGON</div>
+        <div class="boss" style="left:8000px; top:1800px; width:300px; height:300px; background:green;">FOREST TITAN</div>
+        <div class="boss" style="left:-1000px; top:1800px; width:300px; height:300px; background:blue;">CYBER DROID</div>
+        <div class="boss" style="left:2000px; top:8000px; width:400px; height:400px; background:red;">VOID WARDEN</div>
     </div>
 
     <div id="hud">
-        <b id="ui-inv">ДЕРЕВО: 0 | ЖЕЛЕЗО: 0 | ЗОЛОТО: 0</b><br>
-        <span id="ui-quest" style="color:var(--gold)">Квест: Найди верстак (WORK)</span>
+        <b id="ui-inv">W: 0 | I: 0 | G: 0</b><br>
+        <span id="ui-quest" style="color:var(--gold)">Квест: Поговори с Лесей</span>
     </div>
 
     <!-- Верстак -->
     <div id="craft-ui" class="window">
-        <h2 style="color:orange" id="txt-craft">ВЕРСТАК</h2>
+        <h2 style="color:orange" id="t-craft">ВЕРСТАК</h2>
         <button class="menu-btn" onclick="craft('lad')" id="btn-lad">Лестница (3 Wood)</button>
         <button class="menu-btn" onclick="craft('pick')" id="btn-pick">Бур (15 Iron)</button>
-        <button class="menu-btn" onclick="closeW()">ЗАКРЫТЬ</button>
+        <button class="menu-btn" onclick="closeW('craft-ui')">ЗАКРЫТЬ</button>
     </div>
 
-    <!-- Пауза со всеми настройками -->
+    <!-- Инструкция -->
+    <div id="help-ui" class="window">
+        <h2 style="color:var(--neon)">КАК ИГРАТЬ</h2>
+        <p id="help-text">Движение: WASD | Прыжок: SPACE<br>Копать: ЛКМ (Мышь) | Строить: R<br>Верстак: E (рядом с ним)</p>
+        <button class="menu-btn" onclick="closeW('help-ui')">ПОНЯТНО</button>
+    </div>
+
+    <!-- Настройки кнопок -->
+    <div id="bind-ui" class="window">
+        <h2 style="color:var(--neon)">НАСТРОЙКИ КЛАВИШ</h2>
+        <div id="bind-list"></div>
+        <button class="menu-btn" onclick="closeW('bind-ui')">НАЗАД</button>
+    </div>
+
+    <!-- Меню паузы -->
     <div id="pause-ui" class="window">
-        <h1 id="txt-pause">ПАУЗА</h1>
-        <button class="menu-btn" onclick="toggleP()">ПРОДОЛЖИТЬ</button>
+        <h1 id="t-pause">ПАУЗА</h1>
+        <button class="menu-btn" onclick="toggleP()" id="btn-res">ИГРАТЬ</button>
+        <button class="menu-btn" onclick="openW('help-ui')">КАК ИГРАТЬ?</button>
+        <button class="menu-btn" onclick="openW('bind-ui')">БИНДЫ КЛАВИШ</button>
         <button class="menu-btn" onclick="changeL()" id="btn-lang">ЯЗЫК: RU</button>
         <button class="menu-btn" onclick="exportS()" style="color:lightgreen">СОХРАНИТЬ В ФАЙЛ</button>
         <button class="menu-btn" onclick="importS()" style="color:lightblue">ЗАГРУЗИТЬ ФАЙЛ</button>
@@ -74,20 +92,20 @@
 </div>
 
 <script>
-    // Настройки и Состояние (Ничего не вырезано)
     const cfg = { tw: 60, rows: 200, cols: 200, f: 0.85, a: 1.5, g: 0.8, j: -16 };
     let state = {
         x: 2000, y: 1720, vx: 0, vy: 0,
         inv: { wood: 0, iron: 0, gold: 0, lad: 0, dirt: 0 },
-        lang: 'ru', isP: false, pwr: 0.2
+        lang: 'ru', isP: false, pwr: 0.22, q: 0,
+        binds: { left: 'KeyA', right: 'KeyD', jump: 'Space', up: 'KeyW', build: 'KeyR', craft: 'KeyE' }
     };
 
     const str = {
-        ru: { p: "ПАУЗА", q: "Квест: Найди верстак", cr: "ВЕРСТАК", cl: "ЗАКРЫТЬ", l: "ЯЗЫК: RU", w: "ДЕРЕВО", i: "ЖЕЛЕЗО", g: "ЗОЛОТО" },
-        en: { p: "PAUSE", q: "Quest: Find workbench", cr: "WORKBENCH", cl: "CLOSE", l: "LANG: EN", w: "WOOD", i: "IRON", g: "GOLD" }
+        ru: { p: "ПАУЗА", q0: "Поговори с Лесей", q1: "Найди 15 железа для Бура", cr: "ВЕРСТАК", l: "ЯЗЫК: RU", w: "ДЕР", i: "ЖЕЛ", g: "ЗОЛ" },
+        en: { p: "PAUSE", q0: "Talk to Lesya", q1: "Find 15 Iron for Drill", cr: "WORKBENCH", l: "LANG: EN", w: "WOOD", i: "IRON", g: "GOLD" }
     };
 
-    let worldMap = {}, keys = {}, canJ = false;
+    let worldMap = {}, keys = {}, bindingAction = null, canJ = false;
     const tilesCont = document.getElementById('tiles');
 
     function init() {
@@ -104,18 +122,40 @@
             }
         }
         addTile(29, 36, 'bench');
-        updateUI();
+        updateUI(); renderBinds();
         requestAnimationFrame(loop);
     }
 
     function addTile(r, c, type) {
         const t = document.createElement('div');
         t.className = `tile t-${type}`;
-        t.style.left = c * cfg.tw + 'px';
-        t.style.top = r * cfg.tw + 'px';
+        t.style.left = c * cfg.tw + 'px'; t.style.top = r * cfg.tw + 'px';
         if(type==='bench') t.innerText = "WORK";
         tilesCont.appendChild(t);
-        worldMap[`${r}-${c}`] = { el: t, type, hp: 5, x: c*cfg.tw, y: r*cfg.tw };
+        worldMap[`${r}-${c}`] = { el: t, type, hp: 5 };
+    }
+
+    function loop() {
+        if(!state.isP) {
+            if(keys[state.binds.left]) state.vx -= cfg.a;
+            if(keys[state.binds.right]) state.vx += cfg.a;
+            if(keys[state.binds.jump] && canJ) { state.vy = cfg.j; canJ = false; }
+            
+            state.vx *= cfg.f; state.vy += cfg.g;
+            let r = Math.floor((state.y + 32) / cfg.tw), c = Math.floor((state.x + 16) / cfg.tw);
+
+            if(worldMap[`${r}-${c}`]?.type === 'ladder') state.vy = keys[state.binds.up] ? -10 : 1;
+
+            if(!checkCol(state.x + state.vx, state.y)) state.x += state.vx; else state.vx = 0;
+            if(!checkCol(state.x, state.y + state.vy)) state.y += state.vy; else { if(state.vy > 0) canJ = true; state.vy = 0; }
+
+            // Сюжет и Верстак
+            if(Math.abs(state.x - 2300) < 100 && keys[state.binds.up]) { state.q = 1; updateUI(); }
+            if(keys[state.binds.craft] && (worldMap[`${r}-${c+1}`]?.type === 'bench' || worldMap[`${r}-${c-1}`]?.type === 'bench')) { openW('craft-ui'); }
+        }
+        document.getElementById('player').style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`;
+        document.getElementById('world').style.transform = `translate3d(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px, 0)`;
+        requestAnimationFrame(loop);
     }
 
     function checkCol(nx, ny) {
@@ -124,41 +164,12 @@
         return (b && b.type !== 'ladder' && b.type !== 'bench');
     }
 
-    function loop() {
-        if(!state.isP) {
-            // Клавиатура PC
-            if(keys['KeyA']) state.vx -= cfg.a;
-            if(keys['KeyD']) state.vx += cfg.a;
-            if((keys['Space'] || keys['KeyW']) && canJ) { state.vy = cfg.j; canJ = false; }
-            
-            state.vx *= cfg.f;
-            state.vy += cfg.g;
-
-            let r = Math.floor((state.y + 32) / cfg.tw), c = Math.floor((state.x + 16) / cfg.tw);
-            if(worldMap[`${r}-${c}`]?.type === 'ladder') state.vy = (keys['KeyW'] || keys['Space']) ? -10 : 1;
-
-            if(!checkCol(state.x + state.vx, state.y)) state.x += state.vx; else state.vx = 0;
-            if(!checkCol(state.x, state.y + state.vy)) state.y += state.vy; 
-            else { if(state.vy > 0) canJ = true; state.vy = 0; }
-
-            // Авто-открытие верстака
-            if(worldMap[`${r}-${c+1}`]?.type === 'bench' || worldMap[`${r}-${c-1}`]?.type === 'bench') {
-                document.getElementById('craft-ui').style.display = 'block';
-            }
-        }
-
-        document.getElementById('player').style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`;
-        document.getElementById('world').style.transform = `translate3d(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px, 0)`;
-        requestAnimationFrame(loop);
-    }
-
-    // Мышь (Копание)
     window.onmousedown = (e) => {
         if(state.isP) return;
         let rect = world.getBoundingClientRect();
         let mx = e.clientX - rect.left, my = e.clientY - rect.top;
         let r = Math.floor(my / cfg.tw), c = Math.floor(mx / cfg.tw), k = `${r}-${c}`;
-        if(worldMap[k] && worldMap[k].type !== 'bench') {
+        if(worldMap[k] && worldMap[k].type !== 'bench' && Math.abs(state.x - mx) < 180) {
             worldMap[k].hp -= state.pwr;
             worldMap[k].el.style.opacity = worldMap[k].hp / 5;
             if(worldMap[k].hp <= 0) {
@@ -168,8 +179,25 @@
         }
     };
 
-    window.onkeydown = (e) => { keys[e.code] = true; if(e.code === 'Escape') toggleP(); };
+    window.onkeydown = (e) => {
+        if(bindingAction) { state.binds[bindingAction] = e.code; bindingAction = null; renderBinds(); return; }
+        keys[e.code] = true; 
+        if(e.code === 'Escape') toggleP();
+        if(e.code === state.binds.build) build();
+    };
     window.onkeyup = (e) => keys[e.code] = false;
+
+    function renderBinds() {
+        const list = document.getElementById('bind-list');
+        list.innerHTML = '';
+        for(let action in state.binds) {
+            let b = document.createElement('button');
+            b.className = 'menu-btn';
+            b.innerText = `${action.toUpperCase()}: ${state.binds[action]}`;
+            b.onclick = () => { bindingAction = action; b.innerText = "НАЖМИ КЛАВИШУ..."; b.classList.add('bind-waiting'); };
+            list.appendChild(b);
+        }
+    }
 
     function craft(t) {
         if(t==='lad' && state.inv.wood >= 3) { state.inv.wood -= 3; state.inv.lad++; }
@@ -177,33 +205,28 @@
         updateUI();
     }
 
-    function exportS() { 
-        const d = btoa(JSON.stringify(state)); 
-        const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([d], {type:"text/plain"})); 
-        a.download = "save_pc.json"; a.click(); 
-    }
-
-    function importS() {
-        const i = document.createElement("input"); i.type = "file";
-        i.onchange = e => {
-            const r = new FileReader(); r.readAsText(e.target.files);
-            r.onload = () => { state = JSON.parse(atob(r.result)); location.reload(); };
-        }; i.click();
+    function build() {
+        let r = Math.floor((state.y + 32) / cfg.tw), c = Math.floor((state.x + 16) / cfg.tw);
+        if(state.inv.lad > 0) { addTile(r, c, 'ladder'); state.inv.lad--; }
+        else if(state.inv.dirt > 0) { addTile(r+1, c, 'dirt'); state.inv.dirt--; }
+        updateUI();
     }
 
     function updateUI() {
         let s = str[state.lang];
         document.getElementById('ui-inv').innerText = `${s.w}: ${state.inv.wood} | ${s.i}: ${state.inv.iron} | ${s.g}: ${state.inv.gold}`;
-        document.getElementById('ui-quest').innerText = s.q;
-        document.getElementById('txt-pause').innerText = s.p;
+        document.getElementById('ui-quest').innerText = state.q === 0 ? s.q0 : s.q1;
         document.getElementById('btn-lang').innerText = s.l;
     }
 
+    function exportS() { const d = btoa(JSON.stringify(state)); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([d], {type:"text/plain"})); a.download = "save.json"; a.click(); }
+    function importS() { const i = document.createElement("input"); i.type = "file"; i.onchange = e => { const r = new FileReader(); r.readAsText(e.target.files); r.onload = () => { state = JSON.parse(atob(r.result)); location.reload(); }; }; i.click(); }
     function toggleP() { state.isP = !state.isP; document.getElementById('pause-ui').style.display = state.isP ? 'flex' : 'none'; }
+    function openW(id) { document.getElementById(id).style.display = 'block'; }
+    function closeW(id) { document.getElementById(id).style.display = 'none'; }
     function changeL() { state.lang = state.lang === 'ru' ? 'en' : 'ru'; updateUI(); }
-    function closeW() { document.getElementById('craft-ui').style.display = 'none'; }
-
-    init();
+    
+    init(); window.oncontextmenu = (e) => e.preventDefault();
 </script>
 </body>
 </html>
