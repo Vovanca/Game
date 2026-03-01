@@ -3,97 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QUESTIFY: UNDERGROUND SAGA</title>
+    <title>NEON SAGA: THE DEEP</title>
     <style>
-        :root { --sky: #87ceeb; --grass: #44aa44; --dirt: #5c3c2e; --stone: #333; --neon: #00f2ff; }
-        body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; }
+        :root { 
+            --grass: linear-gradient(#4CAF50, #2E7D32); 
+            --dirt: linear-gradient(#795548, #3E2723); 
+            --stone: linear-gradient(#757575, #212121);
+            --gold-ore: radial-gradient(circle, #FFD700, #B8860B);
+            --neon: #00f2ff;
+        }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; }
         
-        #game-viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-        #world { position: absolute; width: 5000px; height: 10000px; background: #050505; }
+        #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        #world { position: absolute; width: 6000px; height: 12000px; background: #0a0a10; }
         
-        /* Биомы */
-        .sky-bg { position: absolute; top: 0; width: 100%; height: 600px; background: var(--sky); }
-        .tile { position: absolute; width: 60px; height: 60px; border: 1px solid rgba(0,0,0,0.2); box-sizing: border-box; }
-        .t-grass { background: var(--grass); border-top: 6px solid #2d632d; }
+        /* Текстуры блоков */
+        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.3); box-shadow: inset 2px 2px 5px rgba(255,255,255,0.1); }
+        .t-grass { background: var(--grass); border-top: 8px solid #1b5e20; }
         .t-dirt { background: var(--dirt); }
-        .t-stone { background: var(--stone); border: 2px solid #222; }
-        .t-iron { background: #888; box-shadow: inset 0 0 15px #fff; }
-        .t-wood { background: #7a421b; border: 3px solid #4a2810; }
+        .t-stone { background: var(--stone); }
+        .t-gold { background: var(--gold-ore); border: 2px solid #FFD700; box-shadow: 0 0 10px #FFD700; }
+        .t-chest { background: #6d4c41; border: 4px double #FFD700; }
 
-        /* Игрок и NPC */
-        #player { width: 35px; height: 50px; background: var(--neon); position: absolute; z-index: 1000; box-shadow: 0 0 20px var(--neon); border-radius: 4px; }
-        .npc { position: absolute; width: 40px; height: 55px; background: #ff00ff; z-index: 900; border-radius: 5px; border: 2px solid white; }
+        /* Игрок и Свет */
+        #player { 
+            width: 34px; height: 50px; background: var(--neon); position: absolute; 
+            z-index: 1000; border-radius: 6px; box-shadow: 0 0 30px var(--neon); 
+        }
+        #light-aura {
+            position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,242,255,0.15) 0%, transparent 70%);
+            transform: translate(-133px, -125px); pointer-events: none;
+        }
 
-        /* UI */
-        #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--neon); z-index: 2000; font-size: 11px; }
-        #dialog-ui { position: fixed; top: 30%; left: 10%; width: 80%; background: #000; border: 3px solid var(--neon); padding: 20px; display: none; z-index: 3000; }
-        
-        /* Кнопки управления */
-        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 4000; }
-        .ctrl-group { display: flex; gap: 15px; }
-        .btn { width: 85px; height: 85px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(5px); }
-        .btn:active { background: var(--neon); color: #000; }
+        /* Интерфейс */
+        #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.85); padding: 12px; border: 2px solid var(--neon); border-radius: 10px; z-index: 2000; width: 180px; }
+        .quest-log { color: #FFD700; font-size: 11px; margin-top: 8px; border-top: 1px solid #444; padding-top: 5px; }
+
+        /* Кнопки */
+        #controls { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 4000; }
+        .btn { 
+            width: 85px; height: 85px; background: rgba(255,255,255,0.05); border: 3px solid #fff; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; backdrop-filter: blur(10px); text-shadow: 0 0 5px #000;
+        }
+        .btn:active { background: var(--neon); color: #000; border-color: #fff; transform: scale(1.1); }
     </style>
 </head>
 <body>
 
-<div id="game-viewport">
+<div id="viewport">
     <div id="world">
-        <div class="sky-bg"></div>
-        <div id="player" style="left: 300px; top: 400px;"></div>
-        <div id="tiles-container"></div>
+        <!-- Небо -->
+        <div style="position:absolute; top:0; width:100%; height:600px; background:linear-gradient(#020024, #090979, #00d4ff);"></div>
+        
+        <div id="player" style="left: 300px; top: 400px;">
+            <div id="light-aura"></div>
+        </div>
+        <div id="tiles"></div>
     </div>
 
     <div id="hud">
-        <b>ИНВЕНТАРЬ:</b><br>
-        WOOD: <span id="res-wood">0</span> | IRON: <span id="res-iron">0</span> | DIRT: <span id="res-dirt">0</span><br>
-        ГЛУБИНА: <span id="res-depth">0</span>м<br>
-        <button onclick="openCraft()" style="margin-top:10px; width:100%;">CRAFT MENU</button>
-    </div>
-
-    <div id="dialog-ui">
-        <h2 id="npc-name">NPC</h2>
-        <p id="npc-text">...</p>
-        <button onclick="closeDialog()" style="width:100%; padding:10px; background:var(--neon); border:none;">ПОНЯТНО</button>
+        <b style="color:var(--neon)">STATUS: SURVIVOR</b><br>
+        GOLD: <span id="res-gold">0</span> | IRON: <span id="res-iron">0</span><br>
+        DEPTH: <span id="res-depth">0</span>m
+        <div class="quest-log" id="quest">QUEST: Find the Old Chest beneath the surface.</div>
     </div>
 </div>
 
 <div id="controls">
-    <div class="ctrl-group">
+    <div style="display:flex; gap:15px;">
         <div class="btn" id="left">←</div>
         <div class="btn" id="right">→</div>
     </div>
-    <div class="ctrl-group">
-        <div class="btn" id="dig" style="border-color:orange">DIG</div>
-        <div class="btn" id="jump" style="border-color:var(--neon)">UP/TALK</div>
+    <div style="display:flex; gap:15px;">
+        <div class="btn" id="dig" style="border-color:#FF9800">DIG</div>
+        <div class="btn" id="jump" style="border-color:var(--neon)">UP</div>
     </div>
 </div>
 
 <script>
-    const cfg = { tw: 60, rows: 100, cols: 40 }; // Огромный мир вниз
+    const cfg = { tw: 60, rows: 200, cols: 50 }; // Мир в 2 раза больше
     let state = {
         x: 300, y: 400, vx: 0,
-        inv: { wood: 0, iron: 0, dirt: 0 },
+        inv: { gold: 0, iron: 0, wood: 0 },
         isDigging: false,
-        pickPower: 0.1,
-        story: 0
+        storyPhase: 1
     };
 
-    const container = document.getElementById('tiles-container');
+    const world = document.getElementById('tiles');
     const player = document.getElementById('player');
-    let worldData = {};
+    let map = {};
 
     function init() {
         for(let r=0; r<cfg.rows; r++) {
             for(let c=0; c<cfg.cols; c++) {
                 let type = '';
-                if(r < 8) type = ''; // Небо
-                else if(r === 8) type = 'grass';
-                else if(r < 25) type = 'dirt';
-                else type = 'stone';
+                if(r === 8) type = 'grass';
+                else if(r > 8 && r < 25) type = 'dirt';
+                else if(r >= 25) type = 'stone';
 
-                if(r > 10 && Math.random() > 0.92) type = 'iron'; // Руда
-                if(r === 7 && Math.random() > 0.85) type = 'wood'; // Деревья
+                // Рандомная генерация руд и сюжета
+                if(type === 'stone' && Math.random() > 0.94) type = 'gold';
+                if(r === 20 && c === 15) type = 'chest'; // Квестовый сундук
 
                 if(type) {
                     const t = document.createElement('div');
@@ -101,98 +112,74 @@
                     t.style.left = c * cfg.tw + 'px';
                     t.style.top = r * cfg.tw + 'px';
                     t.id = `t-${r}-${c}`;
-                    container.appendChild(t);
-                    worldData[`${r}-${c}`] = { el: t, type: type, hp: type==='iron'?8:3 };
+                    world.appendChild(t);
+                    map[`${r}-${c}`] = { el: t, type: type, hp: (type==='gold'?10:3) };
                 }
             }
         }
-        // NPC Старейшина
-        let oldman = document.createElement('div');
-        oldman.className = 'npc';
-        oldman.style.left = '500px'; oldman.style.top = '425px';
-        container.appendChild(oldman);
-        
         loop();
     }
 
     function loop() {
         state.x += state.vx;
-        // Гравитация (простая проверка на блоки под ногами)
-        let r = Math.floor((state.y + 55) / cfg.tw);
+        
+        // Физика (пол под ногами)
+        let r = Math.floor((state.y + 58) / cfg.tw);
         let c = Math.floor((state.x + 15) / cfg.tw);
-        if(!worldData[`${r}-${c}`]) {
-            state.y += 4; // Падение
+        if(!map[`${r}-${c}`]) {
+            state.y += 5; // Гравитация
         }
 
-        // Процесс копания (зажим кнопки DIG)
+        // Копание
         if(state.isDigging) {
             let dr = Math.floor((state.y + 65) / cfg.tw);
             let dc = Math.floor((state.x + 15) / cfg.tw);
             let key = `${dr}-${dc}`;
-            if(worldData[key]) {
-                worldData[key].hp -= state.pickPower;
-                worldData[key].el.style.opacity = worldData[key].hp / 3;
-                if(worldData[key].hp <= 0) {
-                    let type = worldData[key].type;
-                    if(type === 'wood') state.inv.wood++;
-                    else if(type === 'iron') state.inv.iron++;
-                    else state.inv.dirt++;
-                    worldData[key].el.remove();
-                    delete worldData[key];
+            if(map[key]) {
+                map[key].hp -= 0.15;
+                map[key].el.style.filter = `brightness(${map[key].hp/3 + 0.5})`;
+                if(map[key].hp <= 0) {
+                    if(map[key].type === 'gold') state.inv.gold += 1;
+                    if(map[key].type === 'chest') {
+                        state.storyPhase = 2;
+                        document.getElementById('quest').innerText = "QUEST: You found a map! Go deeper to 100m.";
+                    }
+                    map[key].el.remove();
+                    delete map[key];
                     updateUI();
                 }
             }
         }
 
-        // Обновление камеры и персонажа
+        // Рендер
         player.style.left = state.x + 'px';
         player.style.top = state.y + 'px';
         document.getElementById('world').style.transform = `translate(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px)`;
-        document.getElementById('res-depth').innerText = Math.floor(state.y / 60 - 8);
-        
+        document.getElementById('res-depth').innerText = Math.floor(state.y/60 - 8);
+
+        // Проверка сюжета по глубине
+        if(state.storyPhase === 2 && state.y > 5000) {
+            state.storyPhase = 3;
+            document.getElementById('quest').innerText = "QUEST: Danger! You've entered the Forbidden Zone.";
+        }
+
         requestAnimationFrame(loop);
     }
 
-    function talk() {
-        if(Math.abs(state.x - 500) < 100 && state.y < 500) {
-            document.getElementById('dialog-ui').style.display = 'block';
-            document.getElementById('npc-name').innerText = "СТАРЕЙШИНА";
-            document.getElementById('npc-text').innerText = "Сын мой, глубины опасны. Собери 20 железа, чтобы сделать бур и пробиться к Адской Цитадели на глубине 50 метров!";
-        } else {
-            state.y -= 80; // Обычный прыжок
-        }
-    }
-
     function updateUI() {
-        document.getElementById('res-wood').innerText = state.inv.wood;
-        document.getElementById('res-iron').innerText = state.inv.iron;
-        document.getElementById('res-dirt').innerText = state.inv.dirt;
+        document.getElementById('res-gold').innerText = state.inv.gold;
     }
 
-    function openCraft() {
-        if(state.inv.iron >= 10 && state.inv.wood >= 5) {
-            state.pickPower = 0.5;
-            alert("ВЫ СОЗДАЛИ СТАЛЬНОЙ БУР! Теперь копать в 5 раз быстрее!");
-            state.inv.iron -= 10;
-            updateUI();
-        } else {
-            alert("Нужно 10 Iron и 5 Wood для Бура!");
-        }
-    }
-
-    function closeDialog() { document.getElementById('dialog-ui').style.display = 'none'; }
-
-    // Контроллеры
     const bind = (id, start, stop) => {
         const b = document.getElementById(id);
-        b.ontouchstart = (e) => { e.preventDefault(); start(); };
-        b.ontouchend = (e) => { e.preventDefault(); stop(); };
+        b.addEventListener('touchstart', (e) => { e.preventDefault(); start(); });
+        b.addEventListener('touchend', (e) => { e.preventDefault(); stop(); });
     };
 
-    bind('left', () => state.vx = -6, () => state.vx = 0);
-    bind('right', () => state.vx = 6, () => state.vx = 0);
+    bind('left', () => state.vx = -7, () => state.vx = 0);
+    bind('right', () => state.vx = 7, () => state.vx = 0);
     bind('dig', () => state.isDigging = true, () => state.isDigging = false);
-    document.getElementById('jump').ontouchstart = talk;
+    document.getElementById('jump').ontouchstart = () => state.y -= 100;
 
     init();
 </script>
