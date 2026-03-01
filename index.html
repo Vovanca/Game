@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questify | Adventure Starts</title>
+    <style>
+        body {
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        /* Анимация заголовка */
+        h1 { font-size: 3.5rem; letter-spacing: 8px; margin-bottom: 50px; color: #ff3e3e; text-shadow: 0 0 15px rgba(255, 62, 62, 0.5); }
+        
+        .menu { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            color: #ff3e3e;
+            border: 1px solid #ff3e3e;
+            border-radius: 4px;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .btn:hover { background: #ff3e3e; color: #000; box-shadow: 0 0 30px #ff3e3e; transform: translateY(-5px); }
+
+        /* Панель языков */
+        .lang-panel { position: absolute; top: 20px; right: 20px; }
+        .lang-btn { 
+            background: none; border: 1px solid #555; color: #888; 
+            padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 3px;
+        }
+        .lang-btn:hover { border-color: #ff3e3e; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="lang-panel">
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
+
+    <h1 id="title">QUESTIFY</h1>
+    
+    <div class="menu">
+        <a href="android.html" class="btn" id="btn-android">Android Version</a>
+        <a href="pc.html" class="btn" id="btn-pc">PC Version</a>
+        <a href="clicker.html" class="btn" id="btn-clicker">Clicker Mode</a>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                android: "Android Version",
+                pc: "PC Version",
+                clicker: "Clicker Mode"
+            },
+            ru: {
+                android: "Версия для Android",
+                pc: "Версия для ПК",
+                clicker: "Режим Кликера"
+            },
+            es: {
+                android: "Versión Android",
+                pc: "Versión para PC",
+                clicker: "Modo Clicker"
+            }
+        };
+
+        function setLang(lang) {
+            document.getElementById('btn-android').textContent = translations[lang].android;
+            document.getElementById('btn-pc').textContent = translations[lang].pc;
+            document.getElementById('btn-clicker').textContent = translations[lang].clicker;
+        }
+    </script>
+</body>
+</html>
