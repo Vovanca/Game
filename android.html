@@ -3,226 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON ODYSSEY | Mobile</title>
+    <title>NEON TERRA | Survival</title>
     <style>
-        :root { --neon: #00f2ff; --gold: #ffcc00; --wall: #333344; }
-        body { margin: 0; background: #020205; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
+        :root { --grass: #44aa44; --dirt: #5c3c2e; --stone: #444; --neon: #00f2ff; }
+        body { margin: 0; background: #87ceeb; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; }
         
-        /* Сцена */
-        #game-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-        #camera { position: absolute; transition: transform 0.1s linear; width: 10000px; height: 100%; 
-            background: linear-gradient(180deg, #050510 0%, #101020 100%); }
+        /* Мир */
+        #game-window { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        #world { position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; transition: 0.1s linear; }
+        
+        /* Плитки (Тайлы) */
+        .tile { position: absolute; width: 50px; height: 50px; box-sizing: border-box; border: 0.1px solid rgba(0,0,0,0.1); }
+        .tile.grass { background: var(--grass); border-top: 5px solid #2d7a2d; }
+        .tile.dirt { background: var(--dirt); }
+        .tile.stone { background: var(--stone); border: 2px solid #333; }
+        .tile.wood { background: #8b4513; border: 2px solid #5d2e0d; border-radius: 3px; }
+        .tile.iron { background: #aaa; box-shadow: inset 0 0 10px #fff; }
 
         /* Игрок */
         #player { 
-            width: 32px; height: 48px; background: var(--neon); position: absolute; 
-            bottom: 100px; left: 100px; border-radius: 4px; box-shadow: 0 0 20px var(--neon); 
-            z-index: 100;
+            width: 30px; height: 45px; background: var(--neon); position: absolute; 
+            z-index: 100; border-radius: 4px; box-shadow: 0 0 15px var(--neon); 
         }
-        #player::after { content: ''; position: absolute; top: 10px; right: -5px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 10px white; }
 
-        /* Мир: Блоки и Ресурсы */
-        .ore { position: absolute; width: 60px; height: 60px; background: var(--wall); border: 2px solid #555; 
-            display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
-        .ore.iron { background: #777; border-color: #aaa; color: #fff; }
-        .ore.gold { background: #554400; border-color: var(--gold); color: var(--gold); }
-        
-        /* NPC */
-        .npc { position: absolute; width: 35px; height: 50px; background: #ff00ff; bottom: 100px; border-radius: 4px; box-shadow: 0 0 15px #ff00ff; }
-        .bubble { position: absolute; top: -40px; left: -20px; background: white; color: black; padding: 5px; border-radius: 5px; font-size: 12px; display: none; }
+        /* Инвентарь и Крафт */
+        #ui { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; z-index: 1000; font-size: 12px; }
+        #craft-menu { position: fixed; top: 20%; left: 10%; width: 80%; background: #222; border: 2px solid var(--neon); padding: 15px; display: none; z-index: 2000; }
 
-        /* UI Диалоги */
-        #ui-dialog { 
-            position: fixed; top: 20%; left: 10%; width: 80%; background: rgba(0,0,0,0.95); 
-            border: 2px solid var(--neon); padding: 20px; border-radius: 15px; display: none; z-index: 1000;
-        }
-        .choice-btn { display: block; width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid var(--neon); color: white; border-radius: 5px; }
-
-        /* Управление (Крупные кнопки) */
-        #controls { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 2000; }
-        .btn-box { display: flex; gap: 15px; }
-        .ctrl-btn { 
-            width: 85px; height: 85px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.3); 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;
-            -webkit-user-select: none; backdrop-filter: blur(5px);
-        }
-        .ctrl-btn:active { background: var(--neon); color: black; border-color: white; transform: scale(1.1); }
-
-        /* Меню Паузы */
-        #pause-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; }
-        
-        .progress-bar { width: 200px; height: 10px; background: #222; border: 1px solid #444; margin: 10px 0; position: relative; }
-        #hp-fill { height: 100%; background: #ff3344; width: 100%; transition: 0.2s; }
+        /* Управление */
+        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 3000; }
+        .btn { width: 75px; height: 75px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(5px); }
+        .btn:active { background: var(--neon); color: #000; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="camera">
+<div id="game-window">
+    <div id="world">
         <div id="player"></div>
-        <div id="objects-layer"></div>
-        <!-- Земля -->
-        <div style="position:absolute; bottom:0; width:10000px; height:100px; background:#111; border-top:4px solid #222;"></div>
+        <div id="tiles-layer"></div>
     </div>
 
-    <!-- Индикаторы -->
-    <div style="position:fixed; top:15px; left:15px; z-index:500;">
-        <div id="lang-label">RU</div>
-        <div class="progress-bar"><div id="hp-fill"></div></div>
-        <div style="font-size:12px;">IRON: <span id="count-iron">0</span> | GOLD: <span id="count-gold">0</span></div>
+    <div id="ui">
+        <b>ИНВЕНТАРЬ:</b><br>
+        WOOD: <span id="inv-wood">0</span> | DIRT: <span id="inv-dirt">0</span> | IRON: <span id="inv-iron">0</span><br>
+        <button onclick="toggleCraft()" style="margin-top:5px;">МОЛОТ (КРАФТ)</button>
     </div>
 
-    <div id="ui-dialog">
-        <h3 id="dialog-name">NPC</h3>
-        <p id="dialog-text">Text...</p>
-        <div id="choices"></div>
+    <div id="craft-menu">
+        <h3>КРАФТИНГ</h3>
+        <p>Нужно: 10 Wood + 5 Iron</p>
+        <button onclick="craftPickaxe()" style="padding:10px; width:100%;">СОЗДАТЬ СУПЕР-КИРКУ</button>
+        <br><br>
+        <button onclick="toggleCraft()">ЗАКРЫТЬ</button>
     </div>
-
-    <div id="pause-overlay">
-        <h1 id="txt-pause">ПАУЗА</h1>
-        <button class="choice-btn" onclick="setLanguage('ru')">Русский</button>
-        <button class="choice-btn" onclick="setLanguage('en')">English</button>
-        <button class="choice-btn" onclick="togglePause()" style="background:var(--neon); color:black;">RESUME</button>
-        <button class="choice-btn" onclick="exportSave()">SAVE TO FILE</button>
-    </div>
-
-    <div onclick="togglePause()" style="position:fixed; top:15px; right:15px; padding:10px; background:#222; border-radius:5px; z-index:1000;">MENU</div>
 </div>
 
 <div id="controls">
-    <div class="btn-box">
-        <div class="ctrl-btn" id="btn-left">←</div>
-        <div class="ctrl-btn" id="btn-right">→</div>
+    <div style="display:flex; gap:10px;">
+        <div class="btn" id="btn-L">←</div>
+        <div class="btn" id="btn-R">→</div>
     </div>
-    <div class="btn-box">
-        <div class="ctrl-btn" id="btn-hit" style="border-color:orange">HIT</div>
-        <div class="ctrl-btn" id="btn-jump" style="border-color:var(--neon)">UP</div>
+    <div style="display:flex; gap:10px;">
+        <div class="btn" id="btn-DIG" style="border-color:orange">DIG</div>
+        <div class="btn" id="btn-UP" style="border-color:var(--neon)">UP</div>
     </div>
 </div>
 
 <script>
-    const state = {
-        lang: 'ru',
-        x: 100, y: 100, hp: 100,
-        iron: 0, gold: 0,
-        isPaused: false,
-        moving: 0, // -1 влево, 1 вправо
-        mining: false
+    const cfg = { ts: 50, rows: 40, cols: 50 }; // Размер плитки и мира
+    let state = {
+        x: 200, y: 400, 
+        vx: 0, vy: 0,
+        inv: { wood: 0, dirt: 0, iron: 0 },
+        pickPower: 0.1,
+        isDigging: false
     };
 
-    const strings = {
-        ru: { pause: "ПАУЗА", talk: "Нажми UP чтобы говорить", greet: "Привет, путник. Эта шахта полна золота, но берегись глубины.", choice1: "Кто ты?", choice2: "Как копать?" },
-        en: { pause: "PAUSE", talk: "Press UP to talk", greet: "Greetings, traveler. This mine is rich, but beware of the deep.", choice1: "Who are you?", choice2: "How to mine?" }
-    };
+    const world = document.getElementById('tiles-layer');
+    const player = document.getElementById('player');
+    let tiles = {};
 
     function init() {
-        const world = document.getElementById('objects-layer');
-        // Генерируем блоки руды
-        for(let i=0; i<30; i++) {
-            let ore = document.createElement('div');
-            let type = Math.random() > 0.8 ? 'gold' : 'iron';
-            ore.className = `ore ${type}`;
-            ore.style.left = (400 + i * 250) + 'px';
-            ore.style.bottom = (100 + Math.random() * 150) + 'px';
-            ore.dataset.hp = (type === 'gold' ? 5 : 3);
-            ore.id = 'ore-' + i;
-            ore.innerHTML = type.toUpperCase();
-            world.appendChild(ore);
+        // Генерация ландшафта
+        for(let r=0; r<cfg.rows; r++) {
+            for(let c=0; c<cfg.cols; c++) {
+                let type = '';
+                if(r < 8) type = ''; // Воздух
+                else if(r === 8) type = 'grass';
+                else if(r < 15) type = 'dirt';
+                else type = 'stone';
+
+                // Рандомные руды и деревья
+                if(type === 'stone' && Math.random() > 0.9) type = 'iron';
+                if(r === 7 && Math.random() > 0.85) type = 'wood'; // Деревья
+
+                if(type) {
+                    const t = document.createElement('div');
+                    t.className = `tile ${type}`;
+                    t.style.left = c * cfg.ts + 'px';
+                    t.style.top = r * cfg.ts + 'px';
+                    t.dataset.hp = (type === 'iron' ? 10 : 3);
+                    t.id = `t-${r}-${c}`;
+                    world.appendChild(t);
+                    tiles[`${r}-${c}`] = { el: t, type: type, hp: parseFloat(t.dataset.hp) };
+                }
+            }
         }
-        // NPC
-        let npc = document.createElement('div');
-        npc.className = 'npc';
-        npc.style.left = '300px';
-        world.appendChild(npc);
-        
-        gameLoop();
+        loop();
     }
 
-    function gameLoop() {
-        if(!state.isPaused) {
-            // Движение
-            if(state.moving !== 0) {
-                state.x += state.moving * 5;
-                if(state.x < 0) state.x = 0;
-                document.getElementById('player').style.left = state.x + 'px';
-                document.getElementById('camera').style.transform = `translateX(${-state.x + 100}px)`;
-            }
-
-            // Майнинг (если зажата кнопка HIT)
-            if(state.mining) {
-                const ores = document.querySelectorAll('.ore');
-                ores.forEach(ore => {
-                    let dist = Math.abs(state.x - parseInt(ore.style.left));
-                    if(dist < 50) {
-                        let hp = parseFloat(ore.dataset.hp) - 0.05;
-                        ore.dataset.hp = hp;
-                        ore.style.opacity = hp/3;
-                        if(hp <= 0) {
-                            if(ore.classList.contains('gold')) state.gold++;
-                            else state.iron++;
-                            ore.remove();
-                            updateUI();
-                        }
-                    }
-                });
+    function loop() {
+        // Гравитация и физика
+        state.x += state.vx;
+        state.y += state.vy;
+        
+        // Копание
+        if(state.isDigging) {
+            // Ищем плитку прямо под или перед игроком
+            let r = Math.floor((state.y + 50) / cfg.ts);
+            let c = Math.floor((state.x + 15) / cfg.ts);
+            let key = `${r}-${c}`;
+            if(tiles[key]) {
+                tiles[key].hp -= state.pickPower;
+                tiles[key].el.style.opacity = tiles[key].hp / 3;
+                if(tiles[key].hp <= 0) {
+                    state.inv[tiles[key].type === 'wood' ? 'wood' : (tiles[key].type === 'iron' ? 'iron' : 'dirt')]++;
+                    tiles[key].el.remove();
+                    delete tiles[key];
+                    updateUI();
+                }
             }
         }
-        requestAnimationFrame(gameLoop);
+
+        // Рендер игрока и камеры
+        player.style.left = state.x + 'px';
+        player.style.top = state.y + 'px';
+        document.getElementById('world').style.transform = `translate(${-state.x + 150}px, ${-state.y + 300}px)`;
+        
+        requestAnimationFrame(loop);
     }
 
     function updateUI() {
-        document.getElementById('count-iron').innerText = state.iron;
-        document.getElementById('count-gold').innerText = state.gold;
-        document.getElementById('hp-fill').style.width = state.hp + '%';
+        document.getElementById('inv-wood').innerText = state.inv.wood;
+        document.getElementById('inv-dirt').innerText = state.inv.dirt;
+        document.getElementById('inv-iron').innerText = state.inv.iron;
     }
 
-    function togglePause() {
-        state.isPaused = !state.isPaused;
-        document.getElementById('pause-overlay').style.display = state.isPaused ? 'flex' : 'none';
+    function toggleCraft() {
+        const m = document.getElementById('craft-menu');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
     }
 
-    function setLanguage(l) {
-        state.lang = l;
-        document.getElementById('txt-pause').innerText = strings[l].pause;
-        document.getElementById('lang-label').innerText = l.toUpperCase();
+    function craftPickaxe() {
+        if(state.inv.wood >= 10 && state.inv.iron >= 5) {
+            state.inv.wood -= 10; state.inv.iron -= 5;
+            state.pickPower = 0.5; // Мощность копания выросла в 5 раз!
+            alert("СУПЕР-КИРКА СОЗДАНА!");
+            updateUI(); toggleCraft();
+        } else { alert("Недостаточно ресурсов!"); }
     }
 
-    function openDialog() {
-        // Проверка близости к NPC (на 300px)
-        if(Math.abs(state.x - 300) < 60) {
-            const d = document.getElementById('ui-dialog');
-            const c = document.getElementById('choices');
-            d.style.display = 'block';
-            document.getElementById('dialog-name').innerText = "BILLY";
-            document.getElementById('dialog-text').innerText = strings[state.lang].greet;
-            c.innerHTML = `
-                <button class="choice-btn" onclick="closeDialog()">${strings[state.lang].choice1}</button>
-                <button class="choice-btn" onclick="closeDialog()">${strings[state.lang].choice2}</button>
-            `;
-        } else {
-            // Обычный прыжок если NPC далеко
-            let p = document.getElementById('player');
-            p.style.bottom = '220px';
-            setTimeout(() => p.style.bottom = '100px', 300);
-        }
-    }
-
-    function closeDialog() { document.getElementById('ui-dialog').style.display = 'none'; }
-
-    // --- Обработка зажатий для Android ---
-    const bindBtn = (id, startAction, endAction) => {
-        const el = document.getElementById(id);
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); startAction(); });
-        el.addEventListener('touchend', (e) => { e.preventDefault(); endAction(); });
-        // Для ПК тестов
-        el.addEventListener('mousedown', startAction);
-        el.addEventListener('mouseup', endAction);
+    // Управление зажимами
+    const bind = (id, start, stop) => {
+        const btn = document.getElementById(id);
+        btn.ontouchstart = (e) => { e.preventDefault(); start(); };
+        btn.ontouchend = (e) => { e.preventDefault(); stop(); };
     };
 
-    bindBtn('btn-left', () => state.moving = -1, () => state.moving = 0);
-    bindBtn('btn-right', () => state.moving = 1, () => state.moving = 0);
-    bindBtn('btn-hit', () => state.mining = true, () => state.mining = false);
-    document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); openDialog(); });
+    bind('btn-L', () => state.vx = -6, () => state.vx = 0);
+    bind('btn-R', () => state.vx = 6, () => state.vx = 0);
+    bind('btn-DIG', () => state.isDigging = true, () => state.isDigging = false);
+    document.getElementById('btn-UP').ontouchstart = () => { state.y -= 60; }; // Простой прыжок/взлет
 
     init();
 </script>
