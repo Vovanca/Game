@@ -3,51 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON TERRA: INFINITY</title>
+    <title>NEON SAGA: FINAL WORLD</title>
     <style>
-        :root { --neon: #00f2ff; --gold: #ffd700; --hp: #ff3333; }
+        :root { --neon: #00f2ff; --gold: #ffd700; --wood: #8b4513; }
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
         
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-        #world { position: absolute; width: 30000px; height: 30000px; }
-
-        /* Динамическое небо */
-        #sky { position: fixed; inset: 0; background: linear-gradient(to bottom, #000 0%, #001 20%, #4a90e2 50%, #87ceeb 100%); z-index: -1; transition: 1s; }
+        #world { position: absolute; width: 20000px; height: 20000px; }
+        #sky { position: fixed; inset: 0; background: linear-gradient(to bottom, #000 0%, #001 20%, #4a90e2 50%, #87ceeb 100%); z-index: -1; }
 
         /* Плитки */
-        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; transition: opacity 0.2s; border-radius: 2px; }
-        .t-grass { background: linear-gradient(#4caf50, #2e7d32); border-bottom: 4px solid #1b5e20; }
+        .tile { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.2); }
+        .t-grass { background: linear-gradient(#4caf50, #2e7d32); }
         .t-dirt { background: linear-gradient(#5d4037, #3e2723); }
-        .t-stone { background: linear-gradient(#424242, #212121); border: 1px solid #111; }
-        .t-gold { background: radial-gradient(circle, #fff, #aa0); box-shadow: 0 0 15px #ff0; z-index: 2; }
+        .t-stone { background: linear-gradient(#424242, #111); }
         .t-iron { background: radial-gradient(circle, #ddd, #444); border: 2px solid #888; }
-        .t-ladder { background: rgba(255,255,255,0.1); border: 2px solid var(--neon); border-width: 0 8px; z-index: 5; }
-        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; }
+        .t-gold { background: radial-gradient(circle, #fff, #aa0); box-shadow: 0 0 15px #ff0; }
+        .t-ladder { background: rgba(0,242,255,0.3); border-left: 8px solid var(--neon); border-right: 8px solid var(--neon); z-index: 5; }
+        .t-bench { background: #ff9800; border: 4px solid #fff; box-shadow: 0 0 20px #f90; z-index: 10; animation: pulse 1s infinite; }
 
-        /* Персонаж (Плавный) */
-        #player { 
-            width: 34px; height: 52px; background: var(--neon); position: absolute; 
-            z-index: 1000; border-radius: 6px; box-shadow: 0 0 25px var(--neon);
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-        }
-        .eyes { display: flex; gap: 6px; margin-top: 10px; transition: 0.2s; }
+        /* Персонаж */
+        #player { width: 34px; height: 52px; background: var(--neon); position: absolute; z-index: 1000; border-radius: 6px; box-shadow: 0 0 25px var(--neon); display: flex; flex-direction: column; align-items: center; }
+        .eyes { display: flex; gap: 6px; margin-top: 10px; }
         .eye { width: 6px; height: 6px; background: #000; border-radius: 50%; }
 
         /* Боссы */
-        .boss { position: absolute; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 8px solid #fff; border-radius: 20px; }
-        #b-up { width: 300px; height: 100px; background: #fff; color: #000; left: 2000px; top: -500px; box-shadow: 0 0 100px #fff; }
-        #b-down { width: 250px; height: 250px; background: #900; left: 2000px; top: 6000px; box-shadow: 0 0 100px red; }
-        #b-right { width: 150px; height: 400px; background: #060; left: 8000px; top: 1800px; }
-        #b-left { width: 200px; height: 200px; background: #009; left: -1000px; top: 1800px; }
+        .boss { position: absolute; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 10px solid #fff; border-radius: 20px; font-size: 24px; color: white; text-shadow: 2px 2px #000; }
+        #b-up { width: 400px; height: 120px; background: #fff; color: #000; left: 2000px; top: -1500px; box-shadow: 0 0 100px #fff; }
+        #b-down { width: 300px; height: 300px; background: #900; left: 2000px; top: 10000px; box-shadow: 0 0 100px red; }
+        #b-left { width: 250px; height: 250px; background: #009; left: -1000px; top: 1800px; box-shadow: 0 0 100px blue; }
+        #b-right { width: 250px; height: 250px; background: #090; left: 8000px; top: 1800px; box-shadow: 0 0 100px green; }
 
-        /* UI */
-        #hud { position: fixed; top: 15px; left: 15px; background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid var(--neon); border-radius: 12px; z-index: 2000; min-width: 180px; }
+        /* Интерфейс */
+        #hud { position: fixed; top: 15px; left: 15px; background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid var(--neon); border-radius: 12px; z-index: 2000; }
         .window { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid var(--neon); padding: 25px; display: none; z-index: 5000; border-radius: 20px; text-align: center; width: 80%; }
-        .menu-btn { width: 100%; padding: 15px; margin: 8px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); border-radius: 8px; font-weight: bold; }
+        .menu-btn { width: 100%; padding: 15px; margin: 8px 0; background: #111; border: 1px solid var(--neon); color: var(--neon); font-weight: bold; border-radius: 10px; font-size: 16px; }
 
-        /* Controls */
+        /* Кнопки */
         #controls { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: space-around; z-index: 4500; }
-        .joy { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; backdrop-filter: blur(10px); }
+        .joy { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
     </style>
 </head>
 <body>
@@ -55,38 +50,36 @@
 <div id="viewport">
     <div id="sky"></div>
     <div id="world">
-        <div id="player" style="left: 2000px; top: 1800px;">
-            <div class="eyes" id="player-eyes">
-                <div class="eye"></div><div class="eye"></div>
-            </div>
-        </div>
+        <div id="player" style="left: 2000px; top: 1500px;"><div class="eyes"><div class="eye"></div><div class="eye"></div></div></div>
         <div id="b-up" class="boss">COSMOS DRAGON</div>
         <div id="b-down" class="boss">VOID WARDEN</div>
-        <div id="b-right" class="boss">FOREST TITAN</div>
         <div id="b-left" class="boss">CYBER DRONE</div>
+        <div id="b-right" class="boss">FOREST TITAN</div>
         <div id="tiles"></div>
     </div>
 
     <div id="hud">
-        <b id="ui-inv">WOOD: 0 | IRON: 0 | GOLD: 0</b><br>
-        <span id="ui-alt" style="color:var(--gold)">ALTITUDE: 0m</span>
+        <b id="ui-res">W: 0 | I: 0 | G: 0</b><br>
+        <span id="ui-alt" style="color:var(--gold)">ALT: 0m</span>
     </div>
 
     <div id="craft-ui" class="window">
-        <h2 style="color:orange">WORKBENCH</h2>
-        <button class="menu-btn" onclick="craft('lad')">LADDER (3 Wood)</button>
-        <button class="menu-btn" onclick="craft('pick')">DRILL (15 Iron)</button>
-        <button class="menu-btn" onclick="closeW()">CLOSE</button>
+        <h2 id="t-craft" style="color:orange">ВЕРСТАК</h2>
+        <button class="menu-btn" onclick="craft('lad')" id="btn-lad">Лестница (3 Wood)</button>
+        <button class="menu-btn" onclick="craft('pick')" id="btn-pick">Бур (15 Iron)</button>
+        <button class="menu-btn" onclick="closeW()" id="btn-close">ЗАКРЫТЬ</button>
     </div>
 
     <div id="pause-ui" class="window">
-        <h1>PAUSE</h1>
-        <button class="menu-btn" onclick="toggleP()">RESUME</button>
-        <button class="menu-btn" onclick="changeL()" id="btn-lang">LANG: RU</button>
+        <h1 id="t-pause">ПАУЗА</h1>
+        <button class="menu-btn" onclick="toggleP()" id="btn-res">ИГРАТЬ</button>
+        <button class="menu-btn" onclick="changeL()" id="btn-lang">ЯЗЫК: RU</button>
+        <button class="menu-btn" onclick="exportS()" style="color:lightgreen">СОХРАНИТЬ В ФАЙЛ</button>
+        <button class="menu-btn" onclick="importS()" style="color:lightblue">ЗАГРУЗИТЬ ФАЙЛ</button>
         <button class="menu-btn" onclick="location.reload()" style="color:red">RESTART</button>
     </div>
 
-    <div onclick="toggleP()" style="position:fixed; top:15px; right:15px; padding:10px; background:#000; border:2px solid var(--neon); z-index:6000;">MENU</div>
+    <div onclick="toggleP()" style="position:fixed; top:15px; right:15px; padding:10px; background:#000; border:2px solid var(--neon); z-index:6000; border-radius:8px;">MENU</div>
 </div>
 
 <div id="controls">
@@ -98,16 +91,16 @@
 </div>
 
 <script>
-    const cfg = { tw: 60, rows: 200, cols: 200, fric: 0.8, acc: 1.5, grav: 0.8, jump: -16 };
+    const cfg = { tw: 60, rows: 300, cols: 300, f: 0.85, a: 1.5, g: 0.8, j: -16 };
     let state = {
-        x: 2000, y: 1800, vx: 0, vy: 0,
+        x: 2000, y: 1500, vx: 0, vy: 0,
         inv: { wood: 0, iron: 0, gold: 0, lad: 0, dirt: 0 },
-        isP: false, isDig: false, dir: 1, pwr: 0.15, lang: 'ru'
+        isP: false, isDig: false, lang: 'ru', pwr: 0.18
     };
 
     const str = {
-        ru: { lang: "ЯЗЫК: RU", wood: "ДЕРЕВО", iron: "ЖЕЛЕЗО", gold: "ЗОЛОТО", alt: "ВЫСОТА" },
-        en: { lang: "LANG: EN", wood: "WOOD", iron: "IRON", gold: "GOLD", alt: "ALTITUDE" }
+        ru: { lang: "ЯЗЫК: RU", alt: "ВЫСОТА", p: "ПАУЗА", res: "ИГРАТЬ", cr: "ВЕРСТАК", cl: "ЗАКРЫТЬ", lad: "Лестница (3 Дер)", pick: "Бур (15 Жел)" },
+        en: { lang: "LANG: EN", alt: "ALTITUDE", p: "PAUSE", res: "RESUME", cr: "WORKBENCH", cl: "CLOSE", lad: "Ladder (3 Wood)", pick: "Drill (15 Iron)" }
     };
 
     let worldMap = {};
@@ -118,18 +111,17 @@
             for(let c=0; c<cfg.cols; c++) {
                 let type = '';
                 if(r === 30) type = 'grass';
-                else if(r > 30 && r < 100) type = 'dirt';
-                else if(r >= 100) type = 'stone';
-                
-                if(r > 35 && Math.random() > 0.95) type = 'iron';
-                if(r > 80 && Math.random() > 0.97) type = 'gold';
-                if(r === 29 && Math.random() > 0.9) type = 'wood';
-
+                else if(r > 30 && r < 150) type = 'dirt';
+                else if(r >= 150) type = 'stone';
+                if(r > 35 && Math.random() > 0.94) type = 'iron';
+                if(r > 90 && Math.random() > 0.96) type = 'gold';
+                if(r === 29 && Math.random() > 0.88) type = 'wood';
                 if(type) addTile(r, c, type);
             }
         }
         addTile(29, 36, 'bench');
-        requestAnimationFrame(gameLoop);
+        updateUI();
+        requestAnimationFrame(loop);
     }
 
     function addTile(r, c, type) {
@@ -138,103 +130,111 @@
         t.className = `tile t-${type}`;
         t.style.left = c * cfg.tw + 'px';
         t.style.top = r * cfg.tw + 'px';
+        if(type==='bench') t.innerHTML = "<center style='color:black;font-size:10px;font-weight:bold;margin-top:20px'>CRAFT</center>";
         tilesCont.appendChild(t);
-        worldMap[`${r}-${c}`] = { el: t, type, hp: type==='stone'?10:4 };
+        worldMap[`${r}-${c}`] = { el: t, type, hp: type==='stone'?15:5 };
     }
 
-    function checkCol(nx, ny) {
-        let r = Math.floor((ny + 28) / cfg.tw);
+    function checkC(nx, ny) {
+        let r = Math.floor((ny + 32) / cfg.tw);
         let c = Math.floor((nx + 17) / cfg.tw);
         let b = worldMap[`${r}-${c}`];
         return (b && b.type !== 'ladder' && b.type !== 'bench');
     }
 
-    function gameLoop() {
+    function loop() {
         if(!state.isP) {
-            // Плавное движение
-            if(keys.l) { state.vx -= cfg.acc; state.dir = -1; }
-            if(keys.r) { state.vx += cfg.acc; state.dir = 1; }
-            
-            state.vx *= cfg.fric;
-            state.vy += cfg.grav;
+            if(mv.l) { state.vx -= cfg.a; state.dir = -1; }
+            if(mv.r) { state.vx += cfg.a; state.dir = 1; }
+            state.vx *= cfg.f;
+            state.vy += cfg.g;
 
-            // Лестница
-            let r = Math.floor((state.y + 30) / cfg.tw);
+            let r = Math.floor((state.y + 32) / cfg.tw);
             let c = Math.floor((state.x + 17) / cfg.tw);
-            if(worldMap[`${r}-${c}`]?.type === 'ladder') {
-                state.vy = keys.u ? -8 : 1;
-            }
+            if(worldMap[`${r}-${c}`]?.type === 'ladder') state.vy = mv.u ? -10 : 1;
 
-            // Коллизии
-            if(!checkCol(state.x + state.vx, state.y)) state.x += state.vx; else state.vx = 0;
-            if(!checkCol(state.x, state.y + state.vy)) state.y += state.vy; else { if(state.vy > 0) canJump = true; state.vy = 0; }
+            if(!checkC(state.x + state.vx, state.y)) state.x += state.vx; else state.vx = 0;
+            if(!checkC(state.x, state.y + state.vy)) state.y += state.vy; 
+            else { if(state.vy > 0) canJ = true; state.vy = 0; }
 
-            // Копание
             if(state.isDig) {
                 let dr = Math.floor((state.y + 65) / cfg.tw);
                 let dc = Math.floor((state.x + 17) / cfg.tw);
                 let k = `${dr}-${dc}`;
                 if(worldMap[k] && worldMap[k].type !== 'bench') {
                     worldMap[k].hp -= state.pwr;
-                    worldMap[k].el.style.opacity = worldMap[k].hp / 4;
+                    worldMap[k].el.style.opacity = worldMap[k].hp / 5;
                     if(worldMap[k].hp <= 0) {
-                        state.inv[worldMap[k].type === 'wood' ? 'wood' : (worldMap[k].type === 'iron' ? 'iron' : (worldMap[k].type === 'gold' ? 'gold' : 'dirt'))]++;
+                        let t = worldMap[k].type;
+                        if(t==='wood') state.inv.wood++; else if(t==='iron') state.inv.iron++; else if(t==='gold') state.inv.gold++; else state.inv.dirt++;
                         worldMap[k].el.remove(); delete worldMap[k];
                         updateUI();
                     }
                 }
             }
-
-            // Верстак
             if(worldMap[`${r}-${c+1}`]?.type === 'bench' || worldMap[`${r}-${c-1}`]?.type === 'bench') document.getElementById('craft-ui').style.display = 'block';
-            
-            // Небо и Боссы
-            document.getElementById('sky').style.opacity = Math.max(0, 1 - (1800 - state.y) / 2000);
         }
-
-        const pEl = document.getElementById('player');
-        pEl.style.left = state.x + 'px'; pEl.style.top = state.y + 'px';
-        pEl.style.transform = `rotate(${state.vx * 1.5}deg)`;
-        document.getElementById('player-eyes').style.transform = `translateX(${state.dir * 5}px)`;
-        
+        document.getElementById('player').style.left = state.x + 'px';
+        document.getElementById('player').style.top = state.y + 'px';
         document.getElementById('world').style.transform = `translate(${-state.x + window.innerWidth/2}px, ${-state.y + window.innerHeight/2}px)`;
         document.getElementById('ui-alt').innerText = `${str[state.lang].alt}: ${Math.floor((1800 - state.y)/10)}m`;
-        
-        requestAnimationFrame(gameLoop);
+        document.getElementById('sky').style.opacity = Math.max(0, 1 - (1800 - state.y) / 3000);
+        requestAnimationFrame(loop);
     }
 
-    let keys = { l: false, r: false, u: false }, canJump = false;
-
+    let mv = { l: false, r: false, u: false }, canJ = false;
     function craft(t) {
-        if(t === 'lad' && state.inv.wood >= 3) { state.inv.wood -= 3; state.inv.lad++; }
-        if(t === 'pick' && state.inv.iron >= 15) { state.inv.iron -= 15; state.pwr = 0.5; }
+        if(t==='lad' && state.inv.wood >= 3) { state.inv.wood -= 3; state.inv.lad++; }
+        if(t==='pick' && state.inv.iron >= 15) { state.inv.iron -= 15; state.pwr = 0.8; }
         updateUI();
     }
 
     function build() {
-        let r = Math.floor((state.y + 30) / cfg.tw);
+        let r = Math.floor((state.y + 32) / cfg.tw);
         let c = Math.floor((state.x + 17) / cfg.tw);
-        if(state.inv.lad > 0) { addTile(r, c, 'ladder'); state.inv.lad--; }
+        if(state.inv.lad > 0 && !worldMap[`${r}-${c}`]) { addTile(r, c, 'ladder'); state.inv.lad--; }
         else if(state.inv.dirt > 0) { addTile(r+1, c, 'dirt'); state.inv.dirt--; }
         updateUI();
     }
 
     function updateUI() {
         let s = str[state.lang];
-        document.getElementById('ui-inv').innerText = `${s.wood}: ${state.inv.wood} | ${s.iron}: ${state.inv.iron} | ${s.gold}: ${state.inv.gold}`;
+        document.getElementById('ui-res').innerText = `W: ${state.inv.wood} | I: ${state.inv.iron} | G: ${state.inv.gold} | L: ${state.inv.lad}`;
+        document.getElementById('t-pause').innerText = s.p;
+        document.getElementById('btn-res').innerText = s.res;
+        document.getElementById('btn-lang').innerText = s.lang;
+        document.getElementById('t-craft').innerText = s.cr;
+        document.getElementById('btn-close').innerText = s.cl;
+        document.getElementById('btn-lad').innerText = s.lad;
+        document.getElementById('btn-pick').innerText = s.pick;
+    }
+
+    function exportS() {
+        const d = btoa(JSON.stringify(state));
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([d], {type:"text/plain"}));
+        a.download = "neon_saga_save.json"; a.click();
+    }
+
+    function importS() {
+        const i = document.createElement("input"); i.type = "file";
+        i.onchange = e => {
+            const r = new FileReader(); r.readAsText(e.target.files[0]);
+            r.onload = () => { state = JSON.parse(atob(r.result)); location.reload(); };
+        }; i.click();
     }
 
     function toggleP() { state.isP = !state.isP; document.getElementById('pause-ui').style.display = state.isP ? 'flex' : 'none'; }
     function closeW() { document.getElementById('craft-ui').style.display = 'none'; }
-    function changeL() { state.lang = state.lang === 'ru' ? 'en' : 'ru'; document.getElementById('btn-lang').innerText = str[state.lang].lang; updateUI(); }
+    function changeL() { state.lang = state.lang === 'ru' ? 'en' : 'ru'; updateUI(); }
 
-    const bind = (id, k) => {
+    const bnd = (id, k) => {
         let el = document.getElementById(id);
-        el.ontouchstart = (e) => { e.preventDefault(); keys[k] = true; };
-        el.ontouchend = (e) => { e.preventDefault(); keys[k] = false; };
+        el.ontouchstart = (e) => { e.preventDefault(); mv[k] = true; };
+        el.ontouchend = (e) => { e.preventDefault(); mv[k] = false; };
     };
-    bind('l', 'l'); bind('r', 'r');
-    document.getElementById('u').ontouchstart = () => { if(canJump) { state.vy = cfg.jump; canJump = false; } };
+    bnd('l', 'l'); bnd('r', 'r');
+    document.getElementById('u').ontouchstart = () => { if(canJ) { state.vy = cfg.j; canJ = false; } };
     document.getElementById('d').ontouchstart = () => state.isDig = true;
     document.getElementById('d').ontouchend = () => state.isDig = false;
     document.getElementById('b').ontouchstart = build;
